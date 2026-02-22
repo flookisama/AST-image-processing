@@ -36,6 +36,9 @@ Gemfile
 
 # Python module specific ignores
 *.egg-info
+venv/
+.venv/
+.env
 
 # images
 benchmark/images/*
