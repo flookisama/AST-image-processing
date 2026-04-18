@@ -1,122 +1,394 @@
 """
 EUCAST/CLSI disk diffusion breakpoints (zone diameter mm) for S/I/R interpretation.
 EUCAST data can be loaded from the official Excel file (see eucast_loader.py).
+
+Format:
+  EUCAST → (r_max, s_min)  : S if zone >= s_min; R if zone <= r_max; else I
+  CLSI   → (s_min, i_max, r_max) : S if zone >= s_min; R if zone <= r_max; else I
 """
 
-# Species key: (guideline, species_name)
-# Antibiotic key: code (e.g. AMX, CIP)
-# Value: (r_max, s_min) for EUCAST → S if zone >= s_min, R if zone <= r_max, else I
-#        or (s_min, i_max, r_max) for CLSI 3-tier
-
-# Built-in fallback when Excel is not available
 BREAKPOINTS = {
+    # ── Escherichia coli ────────────────────────────────────────────────────
     ("EUCAST", "Escherichia coli"): {
-        "AMX": (13, 18),   # S>=18, R<13 (so I: 13-17)
-        "AMC": (13, 18),   # amoxicillin-clavulanate
-        "CIP": (19, 25),   # S>=25, R<19
-        "CIP5": (19, 25),
-        "CTX": (19, 25),   # cefotaxime
-        "CAZ": (19, 25),   # ceftazidime
-        "GEN": (14, 18),   # gentamicin
-        "TMP": (11, 16),   # trimethoprim (SXT component)
-        "SXT": (11, 16),   # trimethoprim-sulfamethoxazole
-        "FOS": (16, 22),   # fosfomycin
-        "NAL": (13, 19),   # nalidixic acid
-        "TZP": (19, 25),   # piperacillin-tazobactam
-    },
-    ("EUCAST", "Staphylococcus aureus"): {
-        "PEN": (26, 26),   # penicillin S>=26
-        "OXA": (19, 22),   # oxacillin (methicillin)
-        "CIP": (19, 22),
-        "CIP5": (19, 22),
-        "ERY": (21, 25),
-        "SXT": (11, 16),
-        "GEN": (14, 18),
-        "VAN": (17, 17),   # vancomycin - no disk diffusion in EUCAST
-        "LZD": (21, 21),   # linezolid
-        "TET": (19, 22),   # tetracycline
-    },
-    ("EUCAST", "Pseudomonas aeruginosa"): {
-        "CAZ": (19, 25),
-        "CIP": (19, 25),
-        "CIP5": (19, 25),
-        "GEN": (13, 17),
-        "TZP": (19, 25),
-        "MEM": (19, 22),   # meropenem
-        "IPM": (19, 22),   # imipenem
-    },
-    ("EUCAST", "Streptococcus pneumoniae"): {
-        "PEN": (20, 24),   # meningitis: different; here non-meningitis
-        "AMX": (20, 24),
-        "AMC": (20, 24),
-        "CTX": (25, 29),
-        "CIP": (19, 21),
-        "ERY": (21, 24),
-        "SXT": (15, 19),
-        "VAN": (17, 17),
-        "LEV": (17, 20),   # levofloxacin
+        "AMX": (13, 18),
+        "AMC": (13, 18),
+        "AMP": (13, 17),
+        "TZP": (17, 22),
+        "CXM": (14, 18),
+        "CTX": (14, 23),
+        "CRO": (14, 23),
+        "CAZ": (14, 21),
+        "FEP": (14, 21),
+        "ETP": (18, 22),
+        "IPM": (15, 22),
+        "MEM": (15, 22),
+        "ATM": (14, 21),
+        "CIP": (19, 26),
+        "CIP5": (19, 26),
+        "LEV": (15, 23),
+        "GEN": (12, 17),
+        "TOB": (12, 17),
+        "AMK": (12, 17),
+        "SXT": (9, 14),
+        "TMP": (11, 16),
+        "FOS": (15, 24),
+        "NIT": (20, 25),
+        "NAL": (13, 19),
+        "TGC": (18, 25),
     },
     ("CLSI", "Escherichia coli"): {
         "AMX": (14, 17, 18),
         "AMC": (14, 17, 18),
-        "CIP": (21, 16, 20),
-        "CIP5": (21, 16, 20),
-        "CTX": (23, 20, 22),
-        "CAZ": (21, 18, 20),
-        "GEN": (15, 13, 14),
-        "SXT": (16, 11, 10),
-        "TZP": (21, 18, 20),
+        "AMP": (13, 14, 17),
+        "TZP": (17, 20, 21),
+        "CTX": (22, 22, 26),
+        "CRO": (22, 22, 26),
+        "CAZ": (18, 20, 21),
+        "FEP": (19, 22, 25),
+        "IPM": (20, 23, 24),
+        "MEM": (20, 23, 24),
+        "CIP": (16, 21, 21),
+        "CIP5": (16, 21, 21),
+        "LEV": (13, 17, 17),
+        "GEN": (12, 14, 15),
+        "TOB": (12, 14, 15),
+        "AMK": (14, 17, 17),
+        "SXT": (10, 11, 16),
+        "TZP": (17, 20, 21),
+    },
+
+    # ── Klebsiella pneumoniae ───────────────────────────────────────────────
+    ("EUCAST", "Klebsiella pneumoniae"): {
+        "AMC": (10, 19),
+        "TZP": (17, 22),
+        "CXM": (13, 18),
+        "CTX": (14, 23),
+        "CRO": (14, 23),
+        "CAZ": (14, 21),
+        "FEP": (14, 21),
+        "ETP": (18, 22),
+        "IPM": (15, 22),
+        "MEM": (15, 22),
+        "ATM": (14, 21),
+        "CIP": (15, 26),
+        "LEV": (15, 23),
+        "GEN": (11, 17),
+        "TOB": (11, 17),
+        "AMK": (11, 17),
+        "SXT": (9, 14),
+        "FOS": (15, 24),
+        "TGC": (18, 25),
+    },
+    ("CLSI", "Klebsiella pneumoniae"): {
+        "AMC": (14, 17, 18),
+        "TZP": (17, 20, 21),
+        "CTX": (22, 22, 26),
+        "CRO": (22, 22, 26),
+        "CAZ": (18, 20, 21),
+        "FEP": (19, 22, 25),
+        "IPM": (20, 23, 24),
+        "MEM": (20, 23, 24),
+        "CIP": (16, 21, 21),
+        "GEN": (12, 14, 15),
+        "TOB": (12, 14, 15),
+        "AMK": (14, 17, 17),
+        "SXT": (10, 11, 16),
+    },
+
+    # ── Staphylococcus aureus ───────────────────────────────────────────────
+    ("EUCAST", "Staphylococcus aureus"): {
+        "PEN": (26, 26),
+        "OXA": (19, 22),
+        "FOX": (22, 26),
+        "CIP": (17, 22),
+        "CIP5": (17, 22),
+        "LEV": (17, 22),
+        "MXF": (20, 24),
+        "ERY": (17, 22),
+        "CLI": (19, 22),
+        "SXT": (11, 16),
+        "GEN": (14, 18),
+        "TOB": (14, 18),
+        "TET": (19, 25),
+        "DOX": (20, 25),
+        "VAN": (17, 17),
+        "TEI": (14, 17),
+        "LZD": (21, 21),
+        "DAP": (22, 22),
+        "RIF": (17, 20),
+        "CHL": (21, 26),
+        "MUP": (14, 18),
+        "TGC": (19, 25),
+        "FUS": (22, 27),
     },
     ("CLSI", "Staphylococcus aureus"): {
-        "PEN": (29, 28, 27),
-        "OXA": (22, 21, 19),
-        "CIP": (21, 16, 15),
-        "CIP5": (21, 16, 15),
-        "ERY": (23, 14, 13),
-        "SXT": (16, 11, 10),
-        "GEN": (15, 13, 12),
-        "TET": (19, 15, 14),
+        "PEN": (28, 28, 29),
+        "OXA": (10, 11, 13),
+        "FOX": (22, 23, 24),
+        "CIP": (15, 16, 21),
+        "CIP5": (15, 16, 21),
+        "ERY": (13, 14, 23),
+        "CLI": (14, 15, 21),
+        "SXT": (10, 11, 16),
+        "GEN": (12, 13, 15),
+        "TOB": (12, 13, 15),
+        "TET": (14, 15, 19),
+        "VAN": (15, 15, 17),
+        "LZD": (21, 22, 25),
+        "RIF": (16, 17, 20),
+    },
+
+    # ── Pseudomonas aeruginosa ──────────────────────────────────────────────
+    ("EUCAST", "Pseudomonas aeruginosa"): {
+        "TZP": (17, 22),
+        "CAZ": (17, 22),
+        "FEP": (17, 22),
+        "IPM": (16, 20),
+        "MEM": (16, 20),
+        "ATM": (16, 21),
+        "CIP": (17, 24),
+        "CIP5": (17, 24),
+        "LEV": (17, 21),
+        "GEN": (13, 17),
+        "TOB": (13, 17),
+        "AMK": (15, 18),
+        "COL": (11, 11),
     },
     ("CLSI", "Pseudomonas aeruginosa"): {
-        "CAZ": (22, 19, 18),
-        "CIP": (25, 20, 19),
-        "CIP5": (25, 20, 19),
-        "GEN": (15, 13, 12),
-        "TZP": (21, 18, 17),
-        "MEM": (22, 19, 18),
+        "TZP": (14, 17, 21),
+        "CAZ": (15, 18, 22),
+        "FEP": (15, 18, 22),
+        "IPM": (16, 19, 22),
+        "MEM": (16, 19, 22),
+        "ATM": (16, 19, 22),
+        "CIP": (16, 21, 25),
+        "GEN": (12, 13, 15),
+        "TOB": (12, 13, 15),
+        "AMK": (14, 17, 17),
+    },
+
+    # ── Streptococcus pneumoniae ────────────────────────────────────────────
+    ("EUCAST", "Streptococcus pneumoniae"): {
+        "PEN": (20, 24),
+        "AMX": (20, 24),
+        "AMC": (20, 24),
+        "CTX": (25, 29),
+        "CRO": (25, 29),
+        "CIP": (19, 21),
+        "LEV": (17, 20),
+        "MXF": (18, 22),
+        "ERY": (17, 22),
+        "CLI": (16, 19),
+        "SXT": (15, 19),
+        "TET": (22, 26),
+        "VAN": (17, 17),
+        "LZD": (25, 25),
+        "CHL": (24, 28),
+        "RIF": (16, 19),
+        "TGC": (25, 30),
     },
     ("CLSI", "Streptococcus pneumoniae"): {
-        "PEN": (24, 21, 19),
-        "AMX": (24, 21, 19),
-        "AMC": (24, 21, 19),
-        "CTX": (28, 26, 24),
-        "CIP": (21, 16, 15),
-        "ERY": (23, 14, 13),
-        "SXT": (19, 16, 15),
+        "PEN": (19, 21, 24),
+        "AMX": (19, 21, 24),
+        "CTX": (24, 25, 28),
+        "CRO": (24, 25, 28),
+        "CIP": (15, 16, 21),
+        "ERY": (13, 14, 23),
+        "CLI": (15, 16, 21),
+        "SXT": (15, 16, 19),
+        "TET": (18, 19, 22),
         "VAN": (17, 17, 17),
-        "LEV": (20, 17, 16),
+        "LZD": (21, 22, 25),
+        "LEV": (16, 17, 20),
+    },
+
+    # ── Enterococcus faecalis ───────────────────────────────────────────────
+    ("EUCAST", "Enterococcus faecalis"): {
+        "AMX": (15, 19),
+        "AMP": (15, 19),
+        "GEN": (9, 10),   # High-level synergy screening (120 µg disk)
+        "STR": (9, 10),   # High-level synergy screening (300 µg disk)
+        "VAN": (16, 17),
+        "TEI": (9, 14),
+        "LZD": (24, 25),
+        "DAP": (21, 22),
+        "TET": (16, 22),
+        "CLI": (15, 19),
+        "CIP": (16, 22),
+        "NIT": (20, 25),
+        "FOS": (20, 26),
+    },
+    ("CLSI", "Enterococcus faecalis"): {
+        "AMP": (16, 17, 17),
+        "VAN": (15, 15, 17),
+        "LZD": (21, 22, 25),
+        "GEN": (6, 9, 10),
+        "TET": (12, 15, 19),
+        "CIP": (15, 16, 21),
+    },
+
+    # ── Enterococcus faecium ────────────────────────────────────────────────
+    ("EUCAST", "Enterococcus faecium"): {
+        "AMX": (15, 19),
+        "AMP": (15, 19),
+        "VAN": (16, 17),
+        "TEI": (9, 14),
+        "LZD": (24, 25),
+        "DAP": (21, 22),
+        "TET": (16, 22),
+        "CIP": (16, 22),
+    },
+    ("CLSI", "Enterococcus faecium"): {
+        "AMP": (16, 17, 17),
+        "VAN": (15, 15, 17),
+        "LZD": (21, 22, 25),
+        "TET": (12, 15, 19),
+    },
+
+    # ── Haemophilus influenzae ──────────────────────────────────────────────
+    ("EUCAST", "Haemophilus influenzae"): {
+        "AMP": (12, 22),
+        "AMX": (12, 22),
+        "AMC": (23, 24),
+        "CFM": (25, 31),
+        "CTX": (25, 31),
+        "CRO": (25, 31),
+        "AZM": (17, 23),
+        "CIP": (20, 33),
+        "LEV": (20, 28),
+        "SXT": (9, 16),
+        "CHL": (24, 30),
+        "TET": (23, 28),
+    },
+    ("CLSI", "Haemophilus influenzae"): {
+        "AMP": (18, 19, 22),
+        "AMC": (17, 18, 20),
+        "CTX": (26, 27, 31),
+        "CRO": (26, 27, 31),
+        "AZM": (12, 13, 23),
+        "CIP": (25, 26, 33),
+        "SXT": (10, 11, 16),
+        "CHL": (26, 27, 30),
+    },
+
+    # ── Streptococcus agalactiae (Group B) ──────────────────────────────────
+    ("EUCAST", "Streptococcus agalactiae"): {
+        "PEN": (14, 24),
+        "AMP": (14, 24),
+        "AMX": (14, 24),
+        "AMC": (14, 24),
+        "CTX": (14, 24),
+        "CRO": (14, 24),
+        "ERY": (14, 18),
+        "CLI": (15, 19),
+        "LZD": (20, 21),
+        "VAN": (16, 17),
+        "TET": (19, 26),
+        "CHL": (24, 28),
+    },
+    ("CLSI", "Streptococcus agalactiae"): {
+        "PEN": (25, 26, 26),
+        "AMP": (25, 26, 26),
+        "CTX": (25, 26, 28),
+        "ERY": (13, 14, 21),
+        "CLI": (15, 16, 19),
+        "LZD": (21, 22, 25),
+        "VAN": (17, 17, 17),
+        "TET": (18, 19, 25),
+    },
+
+    # ── Acinetobacter baumannii ─────────────────────────────────────────────
+    ("EUCAST", "Acinetobacter baumannii"): {
+        "IPM": (16, 20),
+        "MEM": (16, 20),
+        "CAZ": (16, 18),
+        "FEP": (16, 18),
+        "TZP": (16, 18),
+        "CIP": (16, 20),
+        "LEV": (16, 20),
+        "GEN": (12, 15),
+        "TOB": (12, 15),
+        "AMK": (14, 18),
+        "COL": (11, 11),
+        "SXT": (10, 14),
+        "RIF": (17, 22),
+        "TET": (14, 20),
+        "TGC": (17, 23),
+    },
+    ("CLSI", "Acinetobacter baumannii"): {
+        "IPM": (14, 16, 22),
+        "MEM": (14, 16, 22),
+        "CAZ": (14, 18, 22),
+        "CIP": (15, 16, 21),
+        "GEN": (12, 13, 15),
+        "TOB": (12, 13, 15),
+        "AMK": (14, 17, 17),
+        "SXT": (10, 11, 16),
+        "TET": (11, 12, 15),
+        "TGC": (16, 17, 23),
+    },
+
+    # ── Salmonella spp. ─────────────────────────────────────────────────────
+    ("EUCAST", "Salmonella spp."): {
+        "AMP": (13, 17),
+        "AMX": (13, 17),
+        "AMC": (13, 17),
+        "CTX": (14, 23),
+        "CRO": (14, 23),
+        "CAZ": (14, 21),
+        "CIP": (19, 26),
+        "CIP5": (19, 26),
+        "LEV": (15, 23),
+        "AZM": (12, 17),
+        "GEN": (12, 17),
+        "SXT": (9, 14),
+        "CHL": (16, 21),
+        "TET": (12, 17),
+    },
+    ("CLSI", "Salmonella spp."): {
+        "AMP": (13, 14, 17),
+        "AMC": (14, 17, 18),
+        "CTX": (22, 22, 26),
+        "CRO": (22, 22, 26),
+        "CIP": (16, 21, 21),
+        "GEN": (12, 14, 15),
+        "SXT": (10, 11, 16),
+        "CHL": (18, 19, 23),
+        "TET": (11, 12, 15),
+    },
+
+    # ── Proteus mirabilis ───────────────────────────────────────────────────
+    ("EUCAST", "Proteus mirabilis"): {
+        "AMP": (13, 17),
+        "AMX": (13, 17),
+        "AMC": (13, 18),
+        "TZP": (17, 22),
+        "CTX": (14, 23),
+        "CRO": (14, 23),
+        "CAZ": (14, 21),
+        "FEP": (14, 21),
+        "ETP": (18, 22),
+        "IPM": (15, 22),
+        "MEM": (15, 22),
+        "CIP": (15, 26),
+        "LEV": (15, 23),
+        "GEN": (12, 17),
+        "TOB": (12, 17),
+        "AMK": (12, 17),
+        "SXT": (9, 14),
     },
 }
 
 
 def interpret_zone(guideline: str, species: str, antibiotic_code: str, zone_mm: float) -> str:
-    """
-    Return "S", "I", or "R" for a given zone diameter (mm).
-    antibiotic_code: e.g. "AMX", "CIP5", "AMC".
-    """
-    ab = get_breakpoints_table(guideline, species)
-    if not ab:
+    """Return 'S', 'I', or 'R' for a given zone diameter (mm)."""
+    table = get_breakpoints_table(guideline, species)
+    if not table:
         return "?"
-    # Try exact code then without dose
-    bp = (
-        ab.get(antibiotic_code)
-        or ab.get(antibiotic_code.rstrip("0123456789"))
-        or None
-    )
+    bp = table.get(antibiotic_code) or table.get(antibiotic_code.rstrip("0123456789"))
     if bp is None:
         return "?"
     if len(bp) == 2:
-        # EUCAST style: (R_max_below, S_min) → S>=S_min, R<=R_max, I between
         r_max, s_min = bp
         if zone_mm >= s_min:
             return "S"
@@ -124,8 +396,7 @@ def interpret_zone(guideline: str, species: str, antibiotic_code: str, zone_mm: 
             return "R"
         return "I"
     else:
-        # CLSI style: (S_min, I_max, R_max) → S>=S_min, I: R_max < z < S_min, R<=R_max
-        s_min, i_max, r_max = bp
+        s_min, _i_max, r_max = bp
         if zone_mm >= s_min:
             return "S"
         if zone_mm <= r_max:
@@ -134,20 +405,17 @@ def interpret_zone(guideline: str, species: str, antibiotic_code: str, zone_mm: 
 
 
 def get_breakpoint_info(guideline: str, species: str, antibiotic_code: str, zone_mm: float) -> dict:
-    """Return interpretation and optional text."""
     sir = interpret_zone(guideline, species, antibiotic_code, zone_mm)
     labels = {"S": "Susceptible", "I": "Intermediate", "R": "Resistant", "?": "Unknown"}
     return {"sir": sir, "label": labels[sir], "zone_mm": zone_mm}
 
 
-# Load EUCAST from Excel when available (e.g. v_16.0__BreakpointTables.xlsx in project or Downloads)
 _EUCAST_FROM_EXCEL: dict = {}
 _ANTIBIOTIC_CODES_FROM_EXCEL: list = []
 _load_tried: bool = False
 
 
-def _ensure_breakpoints_loaded():
-    """Load EUCAST breakpoints from Excel once; merge into get_breakpoints_table."""
+def _ensure_breakpoints_loaded() -> None:
     global _EUCAST_FROM_EXCEL, _ANTIBIOTIC_CODES_FROM_EXCEL, _load_tried
     if _load_tried:
         return
@@ -163,7 +431,7 @@ def _ensure_breakpoints_loaded():
 
 
 def get_breakpoints_table(guideline: str, species: str) -> dict:
-    """Return the breakpoints dict for (guideline, species), with EUCAST Excel data merged when available."""
+    """Return breakpoints dict for (guideline, species), merging EUCAST Excel data when available."""
     _ensure_breakpoints_loaded()
     key = (guideline, species)
     table = dict(BREAKPOINTS.get(key, {}))
@@ -173,12 +441,14 @@ def get_breakpoints_table(guideline: str, species: str) -> dict:
 
 
 def get_antibiotic_options(guideline: str, species: str) -> list:
-    """Return list of antibiotic codes for the dropdown (Unknown + codes from table)."""
     table = get_breakpoints_table(guideline, species)
     codes = sorted(table.keys())
     if not codes and guideline == "EUCAST":
         _ensure_breakpoints_loaded()
         codes = _ANTIBIOTIC_CODES_FROM_EXCEL
     if not codes:
-        codes = ["AMX", "AMC", "CIP", "CIP5", "CTX", "CAZ", "GEN", "SXT", "TZP", "OXA", "PEN", "ERY", "TET"]
+        codes = ["AMX", "AMC", "AMP", "CIP", "CTX", "CAZ", "GEN", "SXT", "TZP", "OXA", "PEN", "ERY", "TET"]
     return ["Unknown"] + codes
+
+
+SPECIES_LIST = sorted({s for (_, s) in BREAKPOINTS})
