@@ -1,4 +1,5 @@
-import io
+import copy
+import unicodedata
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -26,24 +27,54 @@ st.sidebar.markdown("**Autres pages**")
 st.sidebar.page_link("pages/1_Données_Entraînement.py", label="📂 Données d'entraînement")
 st.sidebar.page_link("pages/2_Calibration.py", label="⚙️ Calibration")
 
-# ── Session state ──────────────────────────────────────────────────────────────
-if "disks" not in st.session_state:
-    st.session_state.disks: list[DetectedDisk] = []
-if "px_per_mm" not in st.session_state:
-    st.session_state.px_per_mm: float = 0.0
-if "img_data" not in st.session_state:
-    st.session_state.img_data = None
-if "img_key" not in st.session_state:
-    st.session_state.img_key: str = ""
-
-# ── Helper: OCR label from disk region ────────────────────────────────────────
-def _try_ocr(img_rgb: np.ndarray, cx: float, cy: float, r: float) -> str:
-    """Try pytesseract OCR on the disk region. Returns empty string if unavailable."""
+# ── Antibiotic name → code fuzzy lookup ───────────────────────────────────────
+def _build_name_map() -> dict:
+    """Build a lowercase name → code lookup from eucast_loader."""
     try:
-        import pytesseract
-        import cv2
+        from eucast_loader import AGENT_NAME_TO_CODE
+        m = {}
+        for full_name, code in AGENT_NAME_TO_CODE:
+            key = unicodedata.normalize("NFKD", full_name).encode("ascii", "ignore").decode().lower()
+            m[key] = code
+        return m
+    except Exception:
+        return {}
+
+_NAME_MAP = _build_name_map()
+
+def _resolve_antibiotic(text: str) -> str:
+    """
+    Convert free-text antibiotic name to a known code.
+    Returns the input unchanged if no match is found (allows unknown antibiotics).
+    """
+    if not text:
+        return text
+    t = text.strip().upper()
+    # 1. Direct code match
+    if t in ANTIBIOTIC_OPTIONS:
+        return t
+    # 2. Lowercase normalized lookup (full name or prefix)
+    norm = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode().lower().strip()
+    if norm in _NAME_MAP:
+        return _NAME_MAP[norm]
+    # 3. Prefix match
+    for key, code in _NAME_MAP.items():
+        if key.startswith(norm) or norm.startswith(key[:6]):
+            return code
+    # 4. Contains match (at least 4 chars)
+    if len(norm) >= 4:
+        for key, code in _NAME_MAP.items():
+            if norm in key or key[:len(norm)] == norm:
+                return code
+    # No match — return as-is so user can still store it
+    return t
+
+# ── OCR helper ─────────────────────────────────────────────────────────────────
+def _try_ocr(img_rgb: np.ndarray, cx: float, cy: float, r: float) -> str:
+    try:
+        import pytesseract, cv2
         h, w = img_rgb.shape[:2]
-        pad = int(r * 1.2)
+        pad = int(r * 1.1)
         x1, y1 = max(0, int(cx - pad)), max(0, int(cy - pad))
         x2, y2 = min(w, int(cx + pad)), min(h, int(cy + pad))
         crop = img_rgb[y1:y2, x1:x2]
@@ -55,187 +86,236 @@ def _try_ocr(img_rgb: np.ndarray, cx: float, cy: float, r: float) -> str:
     except Exception:
         return ""
 
+# ── Disk crop preview ──────────────────────────────────────────────────────────
+def _disk_crop(img: np.ndarray, cx: float, cy: float, r: float, size: int = 110) -> np.ndarray:
+    h, w = img.shape[:2]
+    pad = int(r * 1.6)
+    x1, y1 = max(0, int(cx) - pad), max(0, int(cy) - pad)
+    x2, y2 = min(w, int(cx) + pad), min(h, int(cy) + pad)
+    crop = img[y1:y2, x1:x2]
+    if crop.size == 0:
+        return img[:size, :size]
+    pil = Image.fromarray(crop).resize((size, size), Image.LANCZOS)
+    return np.array(pil)
 
-# ── Main layout ────────────────────────────────────────────────────────────────
-col_left, col_right = st.columns([1, 1])
+# ── Session state ──────────────────────────────────────────────────────────────
+for key in ("disks", "px_per_mm", "img_data", "img_key"):
+    if key not in st.session_state:
+        st.session_state[key] = [] if key == "disks" else (0.0 if key == "px_per_mm" else None if key == "img_data" else "")
 
-with col_left:
-    st.subheader("1. Capture ou import de l'image")
-    input_method = st.radio("Source :", ["📷 Caméra", "📁 Importer une image"], horizontal=True)
+# ── Image input ────────────────────────────────────────────────────────────────
+st.subheader("1. Capture ou import de l'image")
+input_method = st.radio("Source :", ["📷 Caméra", "📁 Importer une image"], horizontal=True)
 
-    raw_img = None
-    if input_method == "📷 Caméra":
-        cam = st.camera_input("Photographiez la boîte de Pétri")
-        if cam is not None:
-            raw_img = cam
-            img_key = cam.name if hasattr(cam, "name") else str(cam.file_id)
-    else:
-        up = st.file_uploader("Image antibiogramme", type=["jpg", "jpeg", "png", "tiff", "bmp"])
-        if up is not None:
-            raw_img = up
-            img_key = up.name
+raw_img = None
+img_key = ""
+if input_method == "📷 Caméra":
+    cam = st.camera_input("Photographiez la boîte de Pétri")
+    if cam is not None:
+        raw_img = cam
+        img_key = cam.name if hasattr(cam, "name") else str(getattr(cam, "file_id", "cam"))
+else:
+    up = st.file_uploader("Image antibiogramme", type=["jpg", "jpeg", "png", "tiff", "bmp"])
+    if up is not None:
+        raw_img = up
+        img_key = up.name
 
-    if raw_img is not None:
-        img_arr = np.array(Image.open(raw_img).convert("RGB"))
+if raw_img is not None:
+    img_arr = np.array(Image.open(raw_img).convert("RGB"))
+
+    # Run detection only when the image changes
+    if img_key != st.session_state.img_key:
+        st.session_state.img_key = img_key
+        with st.spinner("Détection des disques et mesure des zones…"):
+            try:
+                disks, px_per_mm = process_antibiogram(img_arr)
+            except Exception as exc:
+                st.error(f"Erreur de traitement : {exc}")
+                disks, px_per_mm = [], 0.0
+        st.session_state.disks = disks
+        st.session_state.px_per_mm = px_per_mm
+        st.session_state.img_data = img_arr
+        # Clear all per-disk widget state so new defaults apply
+        for k in list(st.session_state.keys()):
+            if any(k.startswith(p) for p in ("zone_w_", "label_w_", "ab_mode_", "ab_sel_", "ab_free_")):
+                del st.session_state[k]
+
+    disks: list = st.session_state.disks
+    px_per_mm: float = st.session_state.px_per_mm
+    img_data: np.ndarray = st.session_state.img_data
+
+    # ── Pre-initialise widget states so col_left image is always up-to-date ──
+    if disks:
+        for i, d in enumerate(disks):
+            if f"zone_w_{i}" not in st.session_state:
+                st.session_state[f"zone_w_{i}"] = round(float(d.zone_diameter_mm), 1)
+            if f"label_w_{i}" not in st.session_state:
+                ocr = _try_ocr(img_data, d.center[0], d.center[1], d.radius_px)
+                st.session_state[f"label_w_{i}"] = ocr if ocr else d.label
+            if f"ab_mode_{i}" not in st.session_state:
+                st.session_state[f"ab_mode_{i}"] = "Liste"
+            if f"ab_sel_{i}" not in st.session_state:
+                st.session_state[f"ab_sel_{i}"] = "Unknown"
+            if f"ab_free_{i}" not in st.session_state:
+                st.session_state[f"ab_free_{i}"] = ""
+
+    # ── Left/Right columns ────────────────────────────────────────────────────
+    col_left, col_right = st.columns([1, 1])
+
+    with col_left:
         st.image(img_arr, use_container_width=True, caption="Image originale")
-
-        # Run detection only when image changes
-        if img_key != st.session_state.img_key:
-            st.session_state.img_key = img_key
-            with st.spinner("Détection des disques et mesure des zones…"):
-                try:
-                    disks, px_per_mm = process_antibiogram(img_arr)
-                except Exception as exc:
-                    st.error(f"Erreur de traitement : {exc}")
-                    disks, px_per_mm = [], 0.0
-            st.session_state.disks = disks
-            st.session_state.px_per_mm = px_per_mm
-            st.session_state.img_data = img_arr
-            # Reset any manual corrections
-            for k in list(st.session_state.keys()):
-                if k.startswith("zone_corr_") or k.startswith("label_corr_"):
-                    del st.session_state[k]
-
-        disks = st.session_state.disks
-        px_per_mm = st.session_state.px_per_mm
-
         if disks:
-            st.success(f"✅ {len(disks)} disque(s) détecté(s) — échelle : {px_per_mm:.1f} px/mm")
-
-            # Draw annotated image using current (possibly corrected) zones
-            corrected_disks = []
+            # Build corrected disks using current widget values
+            corrected = []
             for i, d in enumerate(disks):
-                corr_mm = st.session_state.get(f"zone_corr_{i}", d.zone_diameter_mm)
-                corr_label = st.session_state.get(f"label_corr_{i}", d.label)
-                import copy
                 cd = copy.copy(d)
-                cd.zone_diameter_mm = float(corr_mm)
-                cd.label = corr_label
-                cd.zone_radius_px = (float(corr_mm) / 2.0) * px_per_mm
-                corrected_disks.append(cd)
-
-            annotated = draw_results(img_arr, corrected_disks, px_per_mm)
-            st.image(annotated, use_container_width=True, caption="Résultat (rouge = disque, vert = zone)")
-            st.caption("🟢 confiance élevée  🟡 confiance moyenne  🔴 confiance faible")
+                cd.zone_diameter_mm = float(st.session_state.get(f"zone_w_{i}", d.zone_diameter_mm))
+                cd.label = st.session_state.get(f"label_w_{i}", d.label)
+                cd.zone_radius_px = (cd.zone_diameter_mm / 2.0) * px_per_mm
+                corrected.append(cd)
+            annotated = draw_results(img_data, corrected, px_per_mm)
+            st.image(annotated, use_container_width=True, caption="Zones détectées (se met à jour en temps réel)")
+            st.caption("🟢 confiance ≥ 65%  •  🟡 35–65%  •  🔴 < 35%")
+            st.success(f"✅ {len(disks)} disque(s) — échelle : {px_per_mm:.1f} px/mm")
         else:
             st.warning(
-                "Aucun disque détecté. Améliorez l'éclairage, centrez la boîte et "
-                "évitez les reflets. Consultez la page Calibration si le problème persiste."
+                "Aucun disque détecté. Améliorez l'éclairage, centrez la boîte "
+                "et évitez les reflets. Utilisez la page ⚙️ Calibration si besoin."
             )
 
-with col_right:
-    st.subheader("2. Interprétation et correction")
-    st.write(f"**Espèce :** {species}   |   **Référentiel :** {guideline}")
+    with col_right:
+        st.subheader("2. Correction et interprétation")
+        st.write(f"**Espèce :** {species}   |   **Référentiel :** {guideline}")
 
-    disks = st.session_state.disks
-    px_per_mm = st.session_state.px_per_mm
-    img_data = st.session_state.img_data
+        if not disks:
+            st.info("En attente d'une image avec des disques détectés.")
+        else:
+            rows = []
+            for i, d in enumerate(disks):
+                conf = d.confidence
+                conf_icon = "🟢" if conf > 0.65 else "🟡" if conf > 0.35 else "🔴"
 
-    if img_data is not None and disks:
-        rows = []
-        for i, d in enumerate(disks):
-            st.markdown(f"---\n**Disque {i + 1}**")
+                with st.expander(
+                    f"**Disque {i + 1}** — {st.session_state.get(f'label_w_{i}', d.label)}   "
+                    f"{conf_icon} {conf:.0%}",
+                    expanded=True,
+                ):
+                    # ── Disk crop preview + zone slider ──────────────────────
+                    crop_col, ctrl_col = st.columns([1, 2])
 
-            # Confidence indicator
-            conf = d.confidence
-            conf_label = "🟢 Élevée" if conf > 0.65 else "🟡 Moyenne" if conf > 0.35 else "🔴 Faible"
-            st.caption(f"Confiance de détection : {conf_label} ({conf:.0%})")
+                    with crop_col:
+                        crop_img = _disk_crop(img_data, d.center[0], d.center[1], d.radius_px)
+                        st.image(crop_img, caption=f"Disque {i+1}", use_container_width=True)
 
-            c1, c2 = st.columns([1, 1])
-            with c1:
-                # Label: try OCR then manual
-                ocr_suggestion = _try_ocr(img_data, d.center[0], d.center[1], d.radius_px)
-                default_label = ocr_suggestion if ocr_suggestion else d.label
-                label = st.text_input(
-                    "Étiquette du disque",
-                    value=st.session_state.get(f"label_corr_{i}", default_label),
-                    key=f"label_widget_{i}",
-                )
-                st.session_state[f"label_corr_{i}"] = label
+                    with ctrl_col:
+                        # ── Zone slider ──────────────────────────────────────
+                        st.markdown("**Zone d'inhibition (mm)**")
+                        zone_val = st.slider(
+                            "Ajuster la zone",
+                            min_value=6.0,
+                            max_value=50.0,
+                            step=0.5,
+                            key=f"zone_w_{i}",
+                            label_visibility="collapsed",
+                        )
+                        st.caption(f"Zone détectée automatiquement : {d.zone_diameter_mm:.1f} mm  |  Valeur courante : **{zone_val:.1f} mm**")
+                        if abs(zone_val - d.zone_diameter_mm) > 0.4:
+                            if st.button("↩️ Réinitialiser", key=f"reset_zone_{i}"):
+                                st.session_state[f"zone_w_{i}"] = round(float(d.zone_diameter_mm), 1)
+                                st.rerun()
 
-            with c2:
-                zone_corr = st.number_input(
-                    "Zone (mm) — correction manuelle",
-                    min_value=6.0,
-                    max_value=50.0,
-                    value=float(st.session_state.get(f"zone_corr_{i}", round(d.zone_diameter_mm, 1))),
-                    step=0.5,
-                    key=f"zone_widget_{i}",
-                )
-                st.session_state[f"zone_corr_{i}"] = zone_corr
-
-            ab_choice = st.selectbox(
-                "Antibiotique",
-                ANTIBIOTIC_OPTIONS,
-                key=f"ab_{i}",
-            )
-
-            if ab_choice and ab_choice != "Unknown":
-                info = get_breakpoint_info(guideline, species, ab_choice, zone_corr)
-                sir = info["sir"]
-                sir_label = info["label"]
-                color_icon = {"S": "🟢", "I": "🟡", "R": "🔴"}.get(sir, "⚪")
-                st.markdown(f"**Résultat : {color_icon} {sir_label} ({sir})**")
-                rows.append(
-                    {
-                        "Disk": i + 1,
-                        "Label": label,
-                        "Antibiotic": ab_choice,
-                        "Zone (mm)": round(float(zone_corr), 1),
-                        "Confidence": f"{conf:.0%}",
-                        "Interpretation": f"{color_icon} {sir_label}",
-                        "SIR": sir,
-                    }
-                )
-            else:
-                rows.append(
-                    {
-                        "Disk": i + 1,
-                        "Label": label,
-                        "Antibiotic": ab_choice or "—",
-                        "Zone (mm)": round(float(zone_corr), 1),
-                        "Confidence": f"{conf:.0%}",
-                        "Interpretation": "—",
-                        "SIR": "?",
-                    }
-                )
-
-        # ── Summary table ──────────────────────────────────────────────────
-        if rows:
-            st.markdown("---")
-            st.subheader("Tableau récapitulatif")
-            display_cols = ["Disk", "Label", "Antibiotic", "Zone (mm)", "Confidence", "Interpretation"]
-            df = pd.DataFrame(rows)[display_cols]
-            st.dataframe(df, use_container_width=True, hide_index=True)
-
-            # ── Export ────────────────────────────────────────────────────
-            st.markdown("**Exporter les résultats**")
-            ec, pc = st.columns(2)
-
-            with ec:
-                from export import to_csv_bytes
-                csv_bytes = to_csv_bytes(rows)
-                st.download_button(
-                    "⬇️ Télécharger CSV",
-                    data=csv_bytes,
-                    file_name="antibiogramme_resultats.csv",
-                    mime="text/csv",
-                )
-
-            with pc:
-                try:
-                    from export import to_pdf_bytes
-                    pdf_bytes = to_pdf_bytes(rows, species=species, guideline=guideline)
-                    st.download_button(
-                        "⬇️ Télécharger PDF",
-                        data=pdf_bytes,
-                        file_name="antibiogramme_rapport.pdf",
-                        mime="application/pdf",
+                    # ── Label / OCR ──────────────────────────────────────────
+                    label = st.text_input(
+                        "Étiquette du disque (code imprimé)",
+                        key=f"label_w_{i}",
+                        help="Saisissez ou corrigez le code inscrit sur le disque (ex: AMX25, CIP5…)",
                     )
-                except ImportError:
-                    st.caption("PDF désactivé (installez fpdf2)")
-    else:
-        st.info(
-            "Capturez ou importez une image de boîte de Pétri pour voir "
-            "la détection de zones et l'interprétation S/I/R ici."
-        )
+
+                    # ── Antibiotic selection: dropdown OR free text ──────────
+                    st.markdown("**Antibiotique pour interprétation S/I/R**")
+                    mode = st.radio(
+                        "Mode de saisie",
+                        ["Liste déroulante", "Saisie libre"],
+                        horizontal=True,
+                        key=f"ab_mode_{i}",
+                        label_visibility="collapsed",
+                    )
+
+                    if mode == "Liste déroulante":
+                        ab_code = st.selectbox(
+                            "Antibiotique",
+                            ANTIBIOTIC_OPTIONS,
+                            key=f"ab_sel_{i}",
+                            label_visibility="collapsed",
+                        )
+                    else:
+                        raw_ab = st.text_input(
+                            "Nom ou code de l'antibiotique",
+                            key=f"ab_free_{i}",
+                            placeholder="ex: Ciprofloxacin, CIP, Amoxicillin…",
+                            label_visibility="collapsed",
+                        )
+                        ab_code = _resolve_antibiotic(raw_ab) if raw_ab.strip() else "Unknown"
+                        if raw_ab.strip() and ab_code != raw_ab.strip().upper():
+                            st.caption(f"Correspondance trouvée : **{ab_code}**")
+                        elif raw_ab.strip():
+                            st.caption(f"Code utilisé tel quel : **{ab_code}** (aucune correspondance dans les référentiels)")
+
+                    # ── SIR result ───────────────────────────────────────────
+                    if ab_code and ab_code != "Unknown":
+                        info = get_breakpoint_info(guideline, species, ab_code, zone_val)
+                        sir = info["sir"]
+                        sir_label = info["label"]
+                        color_icon = {"S": "🟢", "I": "🟡", "R": "🔴"}.get(sir, "⚪")
+                        st.markdown(f"### {color_icon} {sir_label} ({sir})")
+                        rows.append({
+                            "Disk": i + 1,
+                            "Label": label,
+                            "Antibiotic": ab_code,
+                            "Zone (mm)": round(zone_val, 1),
+                            "Confidence": f"{conf:.0%}",
+                            "Interpretation": f"{sir_label}",
+                            "SIR": sir,
+                        })
+                    else:
+                        st.markdown("*Sélectionnez ou saisissez un antibiotique pour obtenir l'interprétation.*")
+                        rows.append({
+                            "Disk": i + 1,
+                            "Label": label,
+                            "Antibiotic": "—",
+                            "Zone (mm)": round(zone_val, 1),
+                            "Confidence": f"{conf:.0%}",
+                            "Interpretation": "—",
+                            "SIR": "?",
+                        })
+
+            # ── Summary table + export ────────────────────────────────────────
+            if rows:
+                st.markdown("---")
+                st.subheader("Tableau récapitulatif")
+                df = pd.DataFrame(rows)[["Disk", "Label", "Antibiotic", "Zone (mm)", "Confidence", "Interpretation"]]
+                st.dataframe(df, use_container_width=True, hide_index=True)
+
+                ec, pc = st.columns(2)
+                with ec:
+                    from export import to_csv_bytes
+                    st.download_button(
+                        "⬇️ Télécharger CSV",
+                        data=to_csv_bytes(rows),
+                        file_name="antibiogramme_resultats.csv",
+                        mime="text/csv",
+                    )
+                with pc:
+                    try:
+                        from export import to_pdf_bytes
+                        st.download_button(
+                            "⬇️ Télécharger PDF",
+                            data=to_pdf_bytes(rows, species=species, guideline=guideline),
+                            file_name="antibiogramme_rapport.pdf",
+                            mime="application/pdf",
+                        )
+                    except ImportError:
+                        st.caption("PDF désactivé (installez fpdf2)")
+
+else:
+    st.info("Capturez ou importez une image de boîte de Pétri pour commencer.")
