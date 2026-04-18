@@ -307,6 +307,24 @@ def process_antibiogram(
     return results, scale
 
 
+def process_with_params(
+    img: np.ndarray,
+    params_override: dict,
+    disk_labels: Optional[List[str]] = None,
+) -> Tuple[List[DetectedDisk], float]:
+    """
+    Run the full pipeline with a temporary parameter override.
+    Does not persist any changes to the on-disk calibration file.
+    """
+    global _params
+    old = _params
+    _params = {**_DEFAULT_PARAMS, **(old or {}), **params_override}
+    try:
+        return process_antibiogram(img, disk_labels)
+    finally:
+        _params = old
+
+
 def draw_results(img: np.ndarray, disks: List[DetectedDisk], px_per_mm: float) -> np.ndarray:
     """Draw disk and zone circles with labels on the image."""
     out = np.asarray(img).copy()
