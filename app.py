@@ -23,6 +23,14 @@ guideline = st.sidebar.radio("Référentiel clinique :", ["EUCAST", "CLSI"])
 ANTIBIOTIC_OPTIONS = get_antibiotic_options(guideline, species)
 
 st.sidebar.markdown("---")
+st.sidebar.markdown("**Détection**")
+use_ml_filter = st.sidebar.checkbox(
+    "Filtre ML (HOG+SVM)",
+    value=True,
+    help="Désactivez si aucun disque n'est détecté — le filtre ML peut être trop strict sur certaines images.",
+)
+
+st.sidebar.markdown("---")
 st.sidebar.markdown("**Autres pages**")
 st.sidebar.page_link("pages/1_Données_Entraînement.py", label="📂 Données d'entraînement")
 st.sidebar.page_link("pages/2_Calibration.py", label="⚙️ Calibration")
@@ -117,12 +125,13 @@ else:
 if raw_img is not None:
     img_arr = np.array(Image.open(raw_img).convert("RGB"))
 
-    # Run detection only when the image changes
-    if img_key != st.session_state.img_key:
-        st.session_state.img_key = img_key
+    # Run detection only when the image changes or ML toggle changes
+    detection_key = f"{img_key}_{use_ml_filter}"
+    if detection_key != st.session_state.img_key:
+        st.session_state.img_key = detection_key
         with st.spinner("Détection des disques et mesure des zones…"):
             try:
-                disks, px_per_mm = process_antibiogram(img_arr)
+                disks, px_per_mm = process_antibiogram(img_arr, use_ml=use_ml_filter)
             except Exception as exc:
                 st.error(f"Erreur de traitement : {exc}")
                 disks, px_per_mm = [], 0.0

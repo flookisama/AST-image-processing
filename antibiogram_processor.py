@@ -121,7 +121,10 @@ def _crop_petri(gray: np.ndarray) -> Tuple[np.ndarray, int, int]:
             return crop, x1, y1
 
     # Fallback: contour-based crop on Otsu threshold
-    _, th = cv2.threshold(blurred_large, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    # On dark backgrounds, invert so the bright dish becomes the largest contour
+    median_val = float(np.median(blurred_large))
+    th_input = 255 - blurred_large if median_val < 80 else blurred_large
+    _, th = cv2.threshold(th_input, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     contours, _ = cv2.findContours(th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if contours:
         largest = max(contours, key=cv2.contourArea)
@@ -288,6 +291,7 @@ def _px_per_mm(radius_px: float) -> float:
 def process_antibiogram(
     img: np.ndarray,
     disk_labels: Optional[List[str]] = None,
+    use_ml: bool = True,
 ) -> Tuple[List[DetectedDisk], float]:
     """Full pipeline: find disks, measure zones. Returns (disks, px_per_mm)."""
     if img is None or img.size == 0:
@@ -296,7 +300,7 @@ def process_antibiogram(
         img = img[:, :, :3]
 
     gray = _to_gray_uint8(img)
-    circles = find_disks(img)
+    circles = find_disks(img, use_ml=use_ml)
     if not circles:
         return [], 0.0
 
