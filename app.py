@@ -26,6 +26,8 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("**Autres pages**")
 st.sidebar.page_link("pages/1_Données_Entraînement.py", label="📂 Données d'entraînement")
 st.sidebar.page_link("pages/2_Calibration.py", label="⚙️ Calibration")
+st.sidebar.page_link("pages/3_Entraînement.py", label="🎓 Entraînement")
+st.sidebar.page_link("pages/4_Modèles_ML.py", label="🤖 Modèles ML")
 
 # ── Antibiotic name → code fuzzy lookup ───────────────────────────────────────
 def _build_name_map() -> dict:
@@ -69,20 +71,12 @@ def _resolve_antibiotic(text: str) -> str:
     # No match — return as-is so user can still store it
     return t
 
-# ── OCR helper ─────────────────────────────────────────────────────────────────
+# ── Label recognition (EasyOCR → tesseract → empty) ───────────────────────────
 def _try_ocr(img_rgb: np.ndarray, cx: float, cy: float, r: float) -> str:
     try:
-        import pytesseract, cv2
-        h, w = img_rgb.shape[:2]
-        pad = int(r * 1.1)
-        x1, y1 = max(0, int(cx - pad)), max(0, int(cy - pad))
-        x2, y2 = min(w, int(cx + pad)), min(h, int(cy + pad))
-        crop = img_rgb[y1:y2, x1:x2]
-        gray = cv2.cvtColor(crop, cv2.COLOR_RGB2GRAY)
-        _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        cfg = "--psm 8 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        text = pytesseract.image_to_string(bw, config=cfg).strip()
-        return text[:8] if text else ""
+        from label_recognizer import recognize_label
+        code, conf = recognize_label(img_rgb, cx, cy, r)
+        return code if conf > 0.3 else ""
     except Exception:
         return ""
 

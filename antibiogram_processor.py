@@ -155,8 +155,12 @@ def _is_dark_circle(gray: np.ndarray, cx: float, cy: float, r: float) -> bool:
     return inner_mean < outer_perc
 
 
-def find_disks(img: np.ndarray) -> List[Tuple[Tuple[float, float], float]]:
-    """Detect antibiotic disks (dark circles). Returns list of (center_xy, radius_px)."""
+def find_disks(img: np.ndarray, use_ml: bool = True) -> List[Tuple[Tuple[float, float], float]]:
+    """Detect antibiotic disks (dark circles). Returns list of (center_xy, radius_px).
+
+    When use_ml=True and a trained ML classifier exists, applies it as a
+    post-processing filter to remove false positives.
+    """
     p = load_params()
     gray = _to_gray_uint8(img)
     work, ox, oy = _crop_petri(gray)
@@ -195,6 +199,17 @@ def find_disks(img: np.ndarray) -> List[Tuple[Tuple[float, float], float]]:
             cx, cy, r = float(c[0]) + ox, float(c[1]) + oy, float(c[2])
             if _is_dark_circle(gray, cx, cy, r):
                 out.append(((cx, cy), r))
+
+    # ML post-filtering (removes false positives from reflections, bubbles, etc.)
+    if use_ml and out:
+        try:
+            from ml_detector import load_classifier
+            clf = load_classifier()
+            if clf is not None:
+                out = clf.filter(img, out)
+        except Exception:
+            pass
+
     return out
 
 
