@@ -10,20 +10,32 @@ from typing import Dict, List, Tuple, Optional
 
 # Map (guideline, sheet_name) -> app species name
 SHEET_TO_SPECIES = {
-    "Enterobacterales": "Escherichia coli",
-    "Staphylococcus": "Staphylococcus aureus",
-    "Pseudomonas": "Pseudomonas aeruginosa",
-    "S.pneumoniae": "Streptococcus pneumoniae",
-    "Streptococcus A,B,C,G": "Streptococcus agalactiae",
-    "Haemophilus": "Haemophilus influenzae",
-    "Moraxella": "Moraxella catarrhalis",
-    "Neisseria gonorrhoeae": "Neisseria gonorrhoeae",
-    "Neisseria meningitidis": "Neisseria meningitidis",
-    "Enterococcus": "Enterococcus faecalis",
-    "Anaerobes": "Anaerobes",
-    "Acinetobacter": "Acinetobacter baumannii",
-    "Stenotrophomonas": "Stenotrophomonas maltophilia",
-    "Breakpoints": "Escherichia coli",
+    "Enterobacterales":             "Escherichia coli",
+    "Pseudomonas":                  "Pseudomonas aeruginosa",
+    "S.maltophilia":                "Stenotrophomonas maltophilia",
+    "Acinetobacter":                "Acinetobacter baumannii",
+    "Staphylococcus":               "Staphylococcus aureus",
+    "Enterococcus":                 "Enterococcus faecalis",
+    "Streptococcus A,B,C,G":       "Streptococcus agalactiae",
+    "S.pneumoniae":                 "Streptococcus pneumoniae",
+    "Viridans group streptococci":  "Streptococcus viridans",
+    "H.influenzae":                 "Haemophilus influenzae",
+    "M.catarrhalis":                "Moraxella catarrhalis",
+    "N.gonorrhoeae":                "Neisseria gonorrhoeae",
+    "N.meningitidis":               "Neisseria meningitidis",
+    "Anaerobic bacteria":           "Anaerobic bacteria",
+    "H.pylori":                     "Helicobacter pylori",
+    "L.monocytogenes":              "Listeria monocytogenes",
+    "Pasteurella":                  "Pasteurella multocida",
+    "C.jejuni_C.coli":              "Campylobacter jejuni",
+    "Corynebacterium":              "Corynebacterium spp.",
+    "Aeromonas":                    "Aeromonas spp.",
+    "Vibrio":                       "Vibrio cholerae",
+    "Bacillus":                     "Bacillus spp.",
+    "B.melitensis ":                "Brucella melitensis",
+    "B.pseudomallei":               "Burkholderia pseudomallei",
+    "B.cepacia":                    "Burkholderia cepacia",
+    "L.pneumophila":                "Legionella pneumophila",
 }
 
 EUCAST_SHEETS = list(SHEET_TO_SPECIES.keys())
@@ -199,11 +211,27 @@ def load_eucast_excel(
             result[key] = {}
 
         df = pd.read_excel(path, sheet_name=sheet, header=None)
-        # Col 0 = agent name, 5 = S≥, 6 = R<
-        for i in range(9, len(df)):
-            agent = df.iloc[i, 0]
-            s_ge = df.iloc[i, 5]
-            r_lt = df.iloc[i, 6]
+
+        # Auto-detect header row and zone columns (S≥ / R<)
+        agent_col, s_col, r_col, data_start = 0, 5, 6, 9
+        for row_idx in range(min(15, len(df))):
+            row_str = [str(v).strip().lower() for v in df.iloc[row_idx]]
+            # Look for "zone diameter" header to find the right section
+            for ci, val in enumerate(row_str):
+                if "zone" in val and "s" in row_str[ci:ci+4]:
+                    # Find S≥ and R< columns nearby
+                    for offset, marker in enumerate(row_str[ci:ci+6], ci):
+                        if "≥" in marker or ">=" in marker or marker == "s":
+                            s_col = offset
+                        if "<" in marker or "r" == marker:
+                            r_col = offset
+                    data_start = row_idx + 1
+                    break
+
+        for i in range(data_start, len(df)):
+            agent = df.iloc[i, agent_col]
+            s_ge = df.iloc[i, s_col] if s_col < len(df.columns) else None
+            r_lt = df.iloc[i, r_col] if r_col < len(df.columns) else None
             if pd.isna(agent) or not str(agent).strip():
                 continue
             agent_str = str(agent).strip()
