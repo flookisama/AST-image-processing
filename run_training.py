@@ -27,6 +27,8 @@ def main():
     parser.add_argument("--tables", required=True, help="Dossier contenant les fichiers Word (.docx)")
     parser.add_argument("--output", default="data/calibration.json", help="Fichier de calibration à écrire")
     parser.add_argument("--dry-run", action="store_true", help="Parsing seulement, sans calibration")
+    parser.add_argument("--max-size", type=int, default=512, help="Redimensionner les images à max N px (défaut: 512)")
+    parser.add_argument("--max-samples", type=int, default=0, help="Limiter à N échantillons (0 = tous)")
     args = parser.parse_args()
 
     images_dir = Path(args.images)
@@ -136,20 +138,31 @@ def main():
 
     from trainer import TrainingSample, samples_from_ground_truth
 
+    max_size = args.max_size
     images_arrays = {}
     for rec in gt_records:
         img_path = rec.get("_image_path")
         if img_path and Path(img_path).is_file():
             try:
-                arr = np.array(Image.open(img_path).convert("RGB"))
+                img_pil = Image.open(img_path).convert("RGB")
+                # Resize for speed while keeping aspect ratio
+                if max(img_pil.size) > max_size:
+                    img_pil.thumbnail((max_size, max_size), Image.LANCZOS)
+                arr = np.array(img_pil)
                 images_arrays[rec["image_name"]] = arr
                 h, w = arr.shape[:2]
-                print(f"  {rec['image_name']:<35} {w}×{h}px")
+                print(f"  {rec['image_name']:<35} {w}×{h}px (redimensionné)")
             except Exception as e:
                 print(f"  ❌ {rec['image_name']} : {e}")
 
     samples = samples_from_ground_truth(gt_records, images_arrays)
-    print(f"\n  ✅ {len(samples)} échantillon(s) prêt(s) pour l'entraînement")
+    # Optional: limit number of samples
+    if args.max_samples and args.max_samples < len(samples):
+        import random; random.seed(42)
+        samples = random.sample(samples, args.max_samples)
+        print(f"\n  ✅ {len(samples)} échantillon(s) sélectionnés (sur {len(samples)} disponibles)")
+    else:
+        print(f"\n  ✅ {len(samples)} échantillon(s) prêt(s) pour l'entraînement")
 
     if not samples:
         print("❌ Aucun échantillon valide (vérifiez que les zones Word ne sont pas toutes nulles).")
