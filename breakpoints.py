@@ -421,12 +421,33 @@ def _ensure_breakpoints_loaded() -> None:
     if _load_tried:
         return
     _load_tried = True
+
+    # Try live Excel first (highest accuracy)
     try:
         from eucast_loader import load_eucast_excel
         loaded, codes = load_eucast_excel()
         if loaded:
             _EUCAST_FROM_EXCEL = loaded
             _ANTIBIOTIC_CODES_FROM_EXCEL = sorted(set(codes))
+            return
+    except Exception:
+        pass
+
+    # Fallback: pre-extracted JSON (committed to repo)
+    try:
+        import json
+        extracted_path = _DATA_DIR / "eucast_extracted.json"
+        if extracted_path.is_file():
+            with open(extracted_path) as f:
+                data = json.load(f)
+            for guideline, species_dict in data.items():
+                for species, abx_dict in species_dict.items():
+                    key = (guideline, species)
+                    _EUCAST_FROM_EXCEL[key] = {
+                        code: tuple(vals) for code, vals in abx_dict.items()
+                    }
+                    _ANTIBIOTIC_CODES_FROM_EXCEL.extend(abx_dict.keys())
+            _ANTIBIOTIC_CODES_FROM_EXCEL = sorted(set(_ANTIBIOTIC_CODES_FROM_EXCEL))
     except Exception:
         pass
 
