@@ -14,10 +14,19 @@ SHEET_TO_SPECIES = {
     "Staphylococcus": "Staphylococcus aureus",
     "Pseudomonas": "Pseudomonas aeruginosa",
     "S.pneumoniae": "Streptococcus pneumoniae",
+    "Streptococcus A,B,C,G": "Streptococcus agalactiae",
+    "Haemophilus": "Haemophilus influenzae",
+    "Moraxella": "Moraxella catarrhalis",
+    "Neisseria gonorrhoeae": "Neisseria gonorrhoeae",
+    "Neisseria meningitidis": "Neisseria meningitidis",
+    "Enterococcus": "Enterococcus faecalis",
+    "Anaerobes": "Anaerobes",
+    "Acinetobacter": "Acinetobacter baumannii",
+    "Stenotrophomonas": "Stenotrophomonas maltophilia",
+    "Breakpoints": "Escherichia coli",
 }
 
-# Sheets we read (EUCAST disk diffusion zone breakpoints)
-EUCAST_SHEETS = ["Enterobacterales", "Staphylococcus", "Pseudomonas", "S.pneumoniae"]
+EUCAST_SHEETS = list(SHEET_TO_SPECIES.keys())
 
 # Agent name (start of string) -> short code for dropdown/lookup
 AGENT_NAME_TO_CODE: List[Tuple[str, str]] = [
@@ -142,14 +151,24 @@ def load_eucast_excel(
         return {}, []
 
     if path is None:
-        # Default: project data folder, then user Downloads
+        # Auto-discover: any EUCAST BreakpointTables xlsx in data/ or Downloads
         base = Path(__file__).resolve().parent
-        candidates = [
-            base / "data" / "v_16.0__BreakpointTables.xlsx",
-            base / "v_16.0__BreakpointTables.xlsx",
-            Path.home() / "Downloads" / "v_16.0__BreakpointTables.xlsx",
-            Path.home() / "Téléchargements" / "v_16.0__BreakpointTables.xlsx",
+        search_dirs = [
+            base / "data",
+            base,
+            Path.home() / "Downloads",
+            Path.home() / "Téléchargements",
         ]
+        candidates = []
+        for d in search_dirs:
+            if d.is_dir():
+                # Check fixed name first
+                fixed = d / "eucast_breakpoints.xlsx"
+                if fixed.is_file():
+                    candidates.insert(0, fixed)
+                candidates.extend(sorted(d.glob("*reakpoint*ables*.xlsx"), reverse=True))
+                candidates.extend(sorted(d.glob("*EUCAST*.xlsx"), reverse=True))
+                candidates.extend(sorted(d.glob("v_*__BreakpointTables*.xlsx"), reverse=True))
         for p in candidates:
             if p.is_file():
                 path = p

@@ -42,7 +42,9 @@ def _load_gt() -> list:
 
 
 # ── Tabs ───────────────────────────────────────────────────────────────────────
-tab_eval, tab_params, tab_test = st.tabs(["📊 Évaluation", "🔧 Paramètres", "🖼️ Test en direct"])
+tab_eval, tab_params, tab_test, tab_eucast = st.tabs([
+    "📊 Évaluation", "🔧 Paramètres", "🖼️ Test en direct", "📋 EUCAST Excel"
+])
 
 # ══════════════════════════════════════════════════════════════════════════════
 with tab_params:
@@ -292,3 +294,58 @@ with tab_test:
                 st.success(f"Échelle : {px_per_mm:.1f} px/mm")
             else:
                 st.warning("Aucun disque détecté. Ajustez les paramètres dans l'onglet Paramètres.")
+
+# ══════════════════════════════════════════════════════════════════════════════
+with tab_eucast:
+    st.subheader("Importer le fichier Excel EUCAST")
+    st.markdown(
+        "Importez le fichier officiel **EUCAST Breakpoint Tables** (format `.xlsx`) "
+        "pour bénéficier des seuils S/I/R les plus récents pour toutes les espèces."
+    )
+
+    EUCAST_PATH = Path(__file__).parent.parent / "data" / "eucast_breakpoints.xlsx"
+
+    # ── Status ────────────────────────────────────────────────────────────────
+    if EUCAST_PATH.is_file():
+        st.success(f"✅ Fichier EUCAST présent : `{EUCAST_PATH.name}`  "
+                   f"({EUCAST_PATH.stat().st_size // 1024} KB)")
+        if st.button("🗑️ Supprimer", key="del_eucast"):
+            EUCAST_PATH.unlink()
+            st.rerun()
+    else:
+        st.info("Aucun fichier EUCAST importé. Téléchargez-le sur eucast.org → Clinical Breakpoints.")
+
+    st.markdown("---")
+    uploaded_xl = st.file_uploader(
+        "Fichier EUCAST BreakpointTables (.xlsx)",
+        type=["xlsx"],
+        key="eucast_upload",
+    )
+
+    if uploaded_xl:
+        EUCAST_PATH.parent.mkdir(parents=True, exist_ok=True)
+        EUCAST_PATH.write_bytes(uploaded_xl.read())
+        st.success(f"✅ Fichier sauvegardé ({EUCAST_PATH.stat().st_size // 1024} KB). Chargement…")
+        st.rerun()
+
+    # ── Preview loaded breakpoints ────────────────────────────────────────────
+    if EUCAST_PATH.is_file():
+        st.markdown("### Contenu chargé")
+        from eucast_loader import load_eucast_excel
+        with st.spinner("Lecture du fichier Excel…"):
+            bp_dict, codes = load_eucast_excel(EUCAST_PATH)
+
+        if not bp_dict:
+            st.error("Impossible de lire les breakpoints. Vérifiez que c'est le bon fichier EUCAST.")
+        else:
+            species_list = sorted({s for (_, s) in bp_dict})
+            st.success(f"✅ {len(species_list)} espèce(s) — {len(codes)} antibiotique(s) chargés")
+
+            for sp in species_list:
+                key = ("EUCAST", sp)
+                abx = bp_dict.get(key, {})
+                with st.expander(f"**{sp}** — {len(abx)} antibiotiques"):
+                    rows = [{"Code": k, "R_max": v[0], "S_min": v[1]} for k, v in sorted(abx.items())]
+                    if rows:
+                        import pandas as pd
+                        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
