@@ -40,7 +40,18 @@ with tab_detect:
             MODEL_PATH.unlink()
             st.rerun()
     else:
-        st.info("Aucun modèle entraîné. Importez des images pour en créer un.")
+        st.info("Aucun modèle entraîné.")
+
+    # ── Upload pre-trained model ───────────────────────────────────────────
+    st.markdown("---")
+    st.markdown("### Importer un modèle entraîné")
+    st.caption("Si vous avez entraîné le modèle localement (train_ml_model.py), importez le fichier .pkl directement.")
+    pkl_upload = st.file_uploader("disk_classifier.pkl", type=["pkl"], key="pkl_upload")
+    if pkl_upload:
+        MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+        MODEL_PATH.write_bytes(pkl_upload.read())
+        st.success(f"✅ Modèle importé ({MODEL_PATH.stat().st_size // 1024} KB) — actif immédiatement.")
+        st.rerun()
 
     st.markdown("---")
 
