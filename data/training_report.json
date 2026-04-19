@@ -1,0 +1,18 @@
+{
+  "baseline_mae": 11.496308812673394,
+  "best_mae": 8.593168890747274,
+  "improvement_pct": 25.25280043561229,
+  "best_params": {
+    "clahe_clip": 2.5,
+    "clahe_grid": 8,
+    "hough_dp": 1,
+    "hough_param1": 80,
+    "hough_param2": 50,
+    "hough_min_r_ratio": 0.02,
+    "hough_max_r_ratio": 0.15,
+    "zone_threshold_ratio": 0.6,
+    "dark_validation": true,
+    "dark_percentile": 40
+  },
+  "n_samples": 224
+}
