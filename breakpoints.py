@@ -6,6 +6,7 @@ Format:
   EUCAST → (r_max, s_min)  : S if zone >= s_min; R if zone <= r_max; else I
   CLSI   → (s_min, i_max, r_max) : S if zone >= s_min; R if zone <= r_max; else I
 """
+from pathlib import Path
 
 BREAKPOINTS = {
     # ── Escherichia coli ────────────────────────────────────────────────────
@@ -430,11 +431,125 @@ def _ensure_breakpoints_loaded() -> None:
         pass
 
 
+# ── Derived breakpoints (from TSV database) ────────────────────────────────────
+_DERIVED: dict = {}
+_NAME_MAP: dict = {}          # normalised full name → canonical code
+_DERIVED_LOAD_TRIED: bool = False
+
+_DATA_DIR = Path(__file__).parent / "data"
+
+# Common antibiotic full name → code table (supplement derived map)
+_BUILTIN_NAME_TO_CODE = {
+    "ampicillin": "AMP", "amoxicillin": "AMX", "amoxicillin-clavulanate": "AMC",
+    "piperacillin-tazobactam": "TZP", "oxacillin": "OXA", "cloxacillin": "CLX",
+    "cefoxitin": "FOX", "cefuroxime": "CXM", "cefotaxime": "CTX",
+    "ceftriaxone": "CRO", "ceftazidime": "CAZ", "cefepime": "FEP",
+    "aztreonam": "ATM", "imipenem": "IPM", "meropenem": "MEM",
+    "ertapenem": "ETP", "doripenem": "DOR",
+    "ciprofloxacin": "CIP", "levofloxacin": "LEV", "norfloxacin": "NOR",
+    "moxifloxacin": "MXF", "ofloxacin": "OFX", "nalidixic acid": "NAL",
+    "gentamicin": "GEN", "tobramycin": "TOB", "amikacin": "AMK",
+    "netilmicin": "NET", "streptomycin": "STR",
+    "trimethoprim-sulfamethoxazole": "SXT", "trimethoprim": "TMP",
+    "chloramphenicol": "CHL", "tetracycline": "TET", "doxycycline": "DOX",
+    "minocycline": "MIN", "tigecycline": "TGC",
+    "vancomycin": "VAN", "teicoplanin": "TEI", "linezolid": "LZD",
+    "daptomycin": "DAP", "rifampicin": "RIF", "rifampin": "RIF",
+    "fosfomycin": "FOS", "nitrofurantoin": "NIT", "colistin": "COL",
+    "polymyxin b": "PMB", "clindamycin": "CLI", "erythromycin": "ERY",
+    "azithromycin": "AZM", "clarithromycin": "CLA", "penicillin": "PEN",
+    "sulfamethoxazole": "SXT", "cefazolin": "CFZ", "cephalothin": "CFL",
+    "piperacillin": "PIP", "ticarcillin": "TIC",
+}
+
+
+def _norm_name(n: str) -> str:
+    import re, unicodedata
+    n = unicodedata.normalize("NFKD", n).encode("ascii", "ignore").decode().lower().strip()
+    n = re.sub(r"\s*[-/]\s*\d+.*$", "", n)
+    return re.sub(r"\s+", " ", n)
+
+
+def _load_derived() -> None:
+    global _DERIVED, _NAME_MAP, _DERIVED_LOAD_TRIED
+    if _DERIVED_LOAD_TRIED:
+        return
+    _DERIVED_LOAD_TRIED = True
+    try:
+        import json
+        bp_path = _DATA_DIR / "derived_breakpoints.json"
+        if bp_path.is_file():
+            with open(bp_path) as f:
+                _DERIVED = json.load(f)
+        nm_path = _DATA_DIR / "antibiotic_name_map.json"
+        if nm_path.is_file():
+            with open(nm_path) as f:
+                raw_map = json.load(f)
+            # normalised_name → code  (use builtin code if known, else keep raw)
+            for norm_name, raw_name in raw_map.items():
+                code = _BUILTIN_NAME_TO_CODE.get(norm_name) or _BUILTIN_NAME_TO_CODE.get(_norm_name(raw_name))
+                if code:
+                    _NAME_MAP[norm_name] = code
+    except Exception:
+        pass
+    # Always ensure builtin map is present
+    for full, code in _BUILTIN_NAME_TO_CODE.items():
+        _NAME_MAP.setdefault(full, code)
+
+
+def _derived_breakpoints_for(guideline: str, species: str) -> dict:
+    """
+    Convert derived breakpoints (from TSV) to the same (r_max, s_min) tuple format.
+    Searches for exact species match, then prefix match.
+    """
+    _load_derived()
+    if not _DERIVED:
+        return {}
+
+    # Find species key
+    sp_data = _DERIVED.get(species)
+    if sp_data is None:
+        sp_lower = species.lower()
+        for key in _DERIVED:
+            if key.lower().startswith(sp_lower[:12]) or sp_lower.startswith(key.lower()[:12]):
+                sp_data = _DERIVED[key]
+                break
+    if sp_data is None:
+        return {}
+
+    result = {}
+    for abx_full, std_dict in sp_data.items():
+        # Map full name → code
+        code = (_NAME_MAP.get(_norm_name(abx_full))
+                or _BUILTIN_NAME_TO_CODE.get(_norm_name(abx_full)))
+        if not code:
+            continue
+        bp_data = std_dict.get(guideline) or std_dict.get(next(iter(std_dict), ""))
+        if not bp_data:
+            continue
+        r_max = bp_data.get("r_max")
+        s_min = bp_data.get("s_min")
+        if r_max is not None and s_min is not None:
+            result[code] = (int(r_max), int(s_min))
+    return result
+
+
+def full_name_to_code(name: str) -> str:
+    """Convert a full antibiotic name to its short code (e.g. 'ampicillin' → 'AMP')."""
+    _load_derived()
+    norm = _norm_name(name)
+    return _NAME_MAP.get(norm, "").upper() or _BUILTIN_NAME_TO_CODE.get(norm, "").upper()
+
+
 def get_breakpoints_table(guideline: str, species: str) -> dict:
-    """Return breakpoints dict for (guideline, species), merging EUCAST Excel data when available."""
+    """Return breakpoints dict for (guideline, species), merging all data sources."""
     _ensure_breakpoints_loaded()
     key = (guideline, species)
-    table = dict(BREAKPOINTS.get(key, {}))
+    # Start with derived (lowest priority)
+    table = _derived_breakpoints_for(guideline, species)
+    # Override with hard-coded curated values
+    table.update(BREAKPOINTS.get(key, {}))
+    # Override with EUCAST Excel (highest priority)
     if guideline == "EUCAST" and key in _EUCAST_FROM_EXCEL:
         table.update(_EUCAST_FROM_EXCEL[key])
     return table
@@ -449,6 +564,14 @@ def get_antibiotic_options(guideline: str, species: str) -> list:
     if not codes:
         codes = ["AMX", "AMC", "AMP", "CIP", "CTX", "CAZ", "GEN", "SXT", "TZP", "OXA", "PEN", "ERY", "TET"]
     return ["Unknown"] + codes
+
+
+def get_all_species() -> list:
+    """All species with breakpoints, including derived ones."""
+    _load_derived()
+    hardcoded = {s for (_, s) in BREAKPOINTS}
+    derived = set(_DERIVED.keys()) if _DERIVED else set()
+    return sorted(hardcoded | derived)
 
 
 SPECIES_LIST = sorted({s for (_, s) in BREAKPOINTS})
