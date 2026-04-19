@@ -1,0 +1,381 @@
+{
+  "Enterococcus faecalis": {
+    "amoxicillin-clavulanic acid": {
+      "CLSI": {
+        "n_S": 5,
+        "n_I": 0,
+        "n_R": 0,
+        "s_min": 22.0,
+        "s_mean": 24.2,
+        "r_max": 19.0,
+        "antibiotic_raw": "amoxicillin-clavulanic acid"
+      }
+    },
+    "ampicillin": {
+      "CLSI": {
+        "n_S": 5,
+        "n_I": 1,
+        "n_R": 0,
+        "s_min": 25.0,
+        "s_mean": 25.8,
+        "i_mean": 16.0,
+        "r_max": 22.0,
+        "antibiotic_raw": "ampicillin"
+      }
+    },
+    "gentamicin": {
+      "CLSI": {
+        "n_S": 3,
+        "n_I": 0,
+        "n_R": 3,
+        "s_min": 20.0,
+        "s_mean": 20.3,
+        "r_max": 6.0,
+        "antibiotic_raw": "gentamicin"
+      }
+    },
+    "streptomycin": {
+      "CLSI": {
+        "n_S": 3,
+        "n_I": 0,
+        "n_R": 3,
+        "s_min": 11.2,
+        "s_mean": 15.0,
+        "r_max": 6.0,
+        "antibiotic_raw": "streptomycin"
+      }
+    },
+    "tetracycline": {
+      "CLSI": {
+        "n_S": 1,
+        "n_I": 0,
+        "n_R": 4,
+        "s_min": 26.0,
+        "s_mean": 26.0,
+        "r_max": 6.0,
+        "antibiotic_raw": "tetracycline"
+      }
+    }
+  },
+  "Escherichia coli": {
+    "amikacin": {
+      "CLSI": {"n_S": 14,"n_I": 4,"n_R": 6,"s_min": 17.0,"s_mean": 19.5,"r_max": 13.5,"i_mean": 16.0,"antibiotic_raw": "amikacin"},
+      "EUCAST": {"n_S": 27,"n_I": 0,"n_R": 1,"s_min": 16.0,"s_mean": 18.6,"r_max": 9.0,"antibiotic_raw": "amikacin"}
+    },
+    "amoxicillin": {
+      "CLSI": {"n_S": 0,"n_I": 0,"n_R": 5,"r_max": 6.0,"s_min": 9.0,"antibiotic_raw": "amoxicillin"},
+      "EUCAST": {"n_S": 0,"n_I": 0,"n_R": 28,"r_max": 6.0,"s_min": 9.0,"antibiotic_raw": "amoxicillin"}
+    },
+    "amoxicillin-clavulanic acid": {
+      "CLSI": {"n_S": 4,"n_I": 0,"n_R": 3,"s_min": 18.2,"s_mean": 19.4,"r_max": 7.6,"antibiotic_raw": "amoxicillin-clavulanic acid"},
+      "EUCAST": {"n_S": 21,"n_I": 3,"n_R": 4,"s_min": 17.0,"s_mean": 21.9,"r_max": 16.0,"i_mean": 18.0,"antibiotic_raw": "amoxicillin-clavulanic acid"}
+    },
+    "ampicillin": {
+      "CLSI": {"n_S": 1,"n_I": 1,"n_R": 21,"s_min": 25.0,"s_mean": 25.0,"r_max": 6.0,"i_mean": 16.0,"antibiotic_raw": "ampicillin"}
+    },
+    "azithromycin": {
+      "CLSI": {"n_S": 3,"n_I": 1,"n_R": 3,"s_min": 15.2,"s_mean": 19.7,"r_max": 12.0,"i_mean": 16.0,"antibiotic_raw": "azithromycin"}
+    },
+    "aztreonam": {
+      "CLSI": {"n_S": 1,"n_I": 1,"n_R": 4,"s_min": 29.0,"s_mean": 29.0,"r_max": 6.0,"i_mean": 20.0,"antibiotic_raw": "aztreonam"}
+    },
+    "carbenicillin": {
+      "CLSI": {"n_S": 3,"n_I": 1,"n_R": 1,"s_min": 20.0,"s_mean": 20.3,"r_max": 8.0,"i_mean": 16.0,"antibiotic_raw": "carbenicillin"}
+    },
+    "cefazolin": {
+      "CLSI": {"n_S": 2,"n_I": 0,"n_R": 46,"s_min": 20.5,"s_mean": 22.5,"r_max": 6.0,"antibiotic_raw": "cefazolin"}
+    },
+    "cefepime": {
+      "CLSI": {"n_S": 11,"n_I": 0,"n_R": 8,"s_min": 21.0,"s_mean": 24.3,"r_max": 12.9,"antibiotic_raw": "cefepime"}
+    },
+    "cefotaxime": {
+      "EUCAST": {"n_S": 0,"n_I": 1,"n_R": 27,"r_max": 14.0,"i_mean": 23.0,"s_min": 17.0,"antibiotic_raw": "cefotaxime"}
+    },
+    "cefoxitin": {
+      "EUCAST": {"n_S": 27,"n_I": 0,"n_R": 1,"s_min": 21.6,"s_mean": 23.6,"r_max": 13.0,"antibiotic_raw": "cefoxitin"}
+    },
+    "ceftazidime": {
+      "CLSI": {"n_S": 4,"n_I": 0,"n_R": 5,"s_min": 23.0,"s_mean": 25.2,"r_max": 14.6,"antibiotic_raw": "ceftazidime"},
+      "EUCAST": {"n_S": 4,"n_I": 7,"n_R": 17,"s_min": 22.6,"s_mean": 24.0,"r_max": 19.0,"i_mean": 21.7,"antibiotic_raw": "ceftazidime"}
+    },
+    "ceftriaxone": {
+      "CLSI": {"n_S": 4,"n_I": 0,"n_R": 10,"s_min": 28.6,"s_mean": 29.5,"r_max": 12.5,"antibiotic_raw": "ceftriaxone"}
+    },
+    "chloramphenicol": {
+      "CLSI": {"n_S": 5,"n_I": 0,"n_R": 12,"s_min": 10.8,"s_mean": 15.8,"r_max": 6.0,"antibiotic_raw": "chloramphenicol"}
+    },
+    "ciprofloxacin": {
+      "CLSI": {"n_S": 2,"n_I": 1,"n_R": 18,"s_min": 30.5,"s_mean": 32.5,"r_max": 7.3,"i_mean": 20.0,"antibiotic_raw": "ciprofloxacin"},
+      "EUCAST": {"n_S": 100,"n_I": 3,"n_R": 28,"s_min": 25.9,"s_mean": 30.7,"r_max": 14.3,"i_mean": 20.0,"antibiotic_raw": "ciprofloxacin"}
+    },
+    "ertapenem": {
+      "CLSI": {"n_S": 5,"n_I": 0,"n_R": 3,"s_min": 29.4,"s_mean": 31.0,"r_max": 7.6,"antibiotic_raw": "ertapenem"}
+    },
+    "erythromycin": {
+      "CLSI": {"n_S": 0,"n_I": 0,"n_R": 6,"r_max": 11.5,"s_min": 14.5,"antibiotic_raw": "erythromycin"}
+    },
+    "fosfomycin": {
+      "CLSI": {"n_S": 30,"n_I": 0,"n_R": 2,"s_min": 24.0,"s_mean": 27.8,"r_max": 6.0,"antibiotic_raw": "fosfomycin"}
+    },
+    "gentamicin": {
+      "CLSI": {"n_S": 15,"n_I": 2,"n_R": 9,"s_min": 15.0,"s_mean": 18.3,"r_max": 10.4,"i_mean": 14.0,"antibiotic_raw": "gentamicin"},
+      "EUCAST": {"n_S": 22,"n_I": 0,"n_R": 6,"s_min": 17.0,"s_mean": 20.1,"r_max": 6.0,"antibiotic_raw": "gentamicin"}
+    },
+    "imipenem": {
+      "CLSI": {"n_S": 57,"n_I": 0,"n_R": 3,"s_min": 24.6,"s_mean": 27.4,"r_max": 15.2,"antibiotic_raw": "imipenem"},
+      "EUCAST": {"n_S": 28,"n_I": 0,"n_R": 0,"s_min": 26.7,"s_mean": 28.2,"r_max": 23.7,"antibiotic_raw": "imipenem"}
+    },
+    "levofloxacin": {
+      "CLSI": {"n_S": 17,"n_I": 0,"n_R": 39,"s_min": 23.4,"s_mean": 28.9,"r_max": 7.2,"antibiotic_raw": "levofloxacin"},
+      "EUCAST": {"n_S": 85,"n_I": 5,"n_R": 13,"s_min": 25.0,"s_mean": 29.1,"r_max": 14.8,"i_mean": 20.8,"antibiotic_raw": "levofloxacin"}
+    },
+    "meropenem": {
+      "CLSI": {"n_S": 9,"n_I": 0,"n_R": 5,"s_min": 29.8,"s_mean": 31.6,"r_max": 15.0,"antibiotic_raw": "meropenem"}
+    },
+    "moxifloxacin": {
+      "CLSI": {"n_S": 14,"n_I": 0,"n_R": 34,"s_min": 22.9,"s_mean": 26.9,"r_max": 6.7,"antibiotic_raw": "moxifloxacin"}
+    },
+    "nalidixic acid": {
+      "CLSI": {"n_S": 65,"n_I": 2,"n_R": 46,"s_min": 20.0,"s_mean": 23.2,"r_max": 16.5,"i_mean": 18.0,"antibiotic_raw": "nalidixic acid"},
+      "EUCAST": {"n_S": 9,"n_I": 0,"n_R": 19,"s_min": 22.2,"s_mean": 25.3,"r_max": 6.0,"antibiotic_raw": "nalidixic acid"}
+    },
+    "nitrofurantoin": {
+      "CLSI": {"n_S": 10,"n_I": 1,"n_R": 2,"s_min": 19.8,"s_mean": 21.5,"r_max": 13.8,"i_mean": 16.0,"antibiotic_raw": "nitrofurantoin"}
+    },
+    "norfloxacin": {
+      "EUCAST": {"n_S": 87,"n_I": 3,"n_R": 13,"s_min": 24.0,"s_mean": 29.6,"r_max": 14.4,"i_mean": 19.7,"antibiotic_raw": "norfloxacin"}
+    },
+    "tetracycline": {
+      "CLSI": {"n_S": 3,"n_I": 0,"n_R": 14,"s_min": 7.8,"s_mean": 12.0,"r_max": 6.0,"antibiotic_raw": "tetracycline"},
+      "EUCAST": {"n_S": 8,"n_I": 0,"n_R": 20,"s_min": 24.4,"s_mean": 26.4,"r_max": 6.1,"antibiotic_raw": "tetracycline"}
+    },
+    "tobramycin": {
+      "CLSI": {"n_S": 7,"n_I": 1,"n_R": 3,"s_min": 15.6,"s_mean": 19.6,"r_max": 10.0,"i_mean": 14.0,"antibiotic_raw": "tobramycin"}
+    },
+    "trimethoprim-sulfamethoxazole": {
+      "CLSI": {"n_S": 4,"n_I": 0,"n_R": 15,"s_min": 24.3,"s_mean": 25.8,"r_max": 7.2,"antibiotic_raw": "trimethoprim-sulfamethoxazole"},
+      "EUCAST": {"n_S": 16,"n_I": 0,"n_R": 12,"s_min": 21.5,"s_mean": 29.6,"r_max": 6.0,"antibiotic_raw": "trimethoprim-sulfamethoxazole"}
+    },
+    "doxycycline": {
+      "CLSI": {"n_S": 87,"n_I": 2,"n_R": 13,"s_min": 16.6,"s_mean": 18.7,"r_max": 9.6,"i_mean": 12.0,"antibiotic_raw": "doxycycline"}
+    },
+    "cefixime": {
+      "CLSI": {"n_S": 47,"n_I": 12,"n_R": 43,"s_min": 19.0,"s_mean": 21.6,"r_max": 8.8,"i_mean": 17.4,"antibiotic_raw": "cefixime"}
+    },
+    "streptomycin": {
+      "CLSI": {"n_S": 66,"n_I": 31,"n_R": 5,"s_min": 15.0,"s_mean": 16.3,"r_max": 11.0,"i_mean": 13.6,"antibiotic_raw": "streptomycin"}
+    }
+  },
+  "Klebsiella aerogenes": {
+    "cefazolin": {
+      "CLSI": {"n_S": 0,"n_I": 0,"n_R": 17,"r_max": 6.0,"s_min": 9.0,"antibiotic_raw": "cefazolin"}
+    },
+    "imipenem": {
+      "CLSI": {"n_S": 3,"n_I": 6,"n_R": 9,"s_min": 23.8,"s_mean": 26.0,"r_max": 18.0,"i_mean": 21.0,"antibiotic_raw": "imipenem"}
+    }
+  },
+  "Klebsiella pneumoniae": {
+    "amikacin": {
+      "CLSI": {"n_S": 5,"n_I": 1,"n_R": 4,"s_min": 18.8,"s_mean": 20.0,"r_max": 12.7,"i_mean": 16.0,"antibiotic_raw": "amikacin"}
+    },
+    "amoxicillin": {
+      "EUCAST": {"n_S": 0,"n_I": 0,"n_R": 96,"r_max": 6.0,"s_min": 9.0,"antibiotic_raw": "amoxicillin"}
+    },
+    "amoxicillin-clavulanic acid": {
+      "CLSI": {"n_S": 3,"n_I": 0,"n_R": 5,"s_min": 25.0,"s_mean": 25.0,"r_max": 9.0,"antibiotic_raw": "amoxicillin-clavulanic acid"},
+      "EUCAST": {"n_S": 68,"n_I": 0,"n_R": 0,"s_min": 24.0,"s_mean": 24.8,"r_max": 21.0,"antibiotic_raw": "amoxicillin-clavulanic acid"}
+    },
+    "ampicillin": {
+      "CLSI": {"n_S": 0,"n_I": 0,"n_R": 11,"r_max": 6.0,"s_min": 9.0,"antibiotic_raw": "ampicillin"}
+    },
+    "aztreonam": {
+      "CLSI": {"n_S": 1,"n_I": 0,"n_R": 5,"s_min": 31.0,"s_mean": 31.0,"r_max": 16.0,"antibiotic_raw": "aztreonam"}
+    },
+    "cefepime": {
+      "CLSI": {"n_S": 2,"n_I": 0,"n_R": 7,"s_min": 31.2,"s_mean": 32.0,"r_max": 15.4,"antibiotic_raw": "cefepime"}
+    },
+    "cefotaxime": {
+      "CLSI": {"n_S": 84,"n_I": 3,"n_R": 0,"s_min": 27.0,"s_mean": 29.3,"i_mean": 24.0,"r_max": 24.0,"antibiotic_raw": "cefotaxime"},
+      "EUCAST": {"n_S": 174,"n_I": 2,"n_R": 91,"s_min": 26.0,"s_mean": 28.2,"r_max": 10.0,"i_mean": 19.0,"antibiotic_raw": "cefotaxime"}
+    },
+    "cefotetan": {
+      "CLSI": {"n_S": 3,"n_I": 1,"n_R": 2,"s_min": 22.4,"s_mean": 25.7,"r_max": 11.0,"i_mean": 15.0,"antibiotic_raw": "cefotetan"}
+    },
+    "ceftazidime": {
+      "CLSI": {"n_S": 90,"n_I": 0,"n_R": 5,"s_min": 26.0,"s_mean": 28.0,"r_max": 12.6,"antibiotic_raw": "ceftazidime"},
+      "EUCAST": {"n_S": 166,"n_I": 1,"n_R": 92,"s_min": 25.0,"s_mean": 27.0,"r_max": 12.9,"i_mean": 20.0,"antibiotic_raw": "ceftazidime"}
+    },
+    "ceftriaxone": {
+      "CLSI": {"n_S": 4,"n_I": 0,"n_R": 6,"s_min": 28.6,"s_mean": 30.5,"r_max": 18.0,"antibiotic_raw": "ceftriaxone"}
+    },
+    "chloramphenicol": {
+      "CLSI": {"n_S": 1,"n_I": 0,"n_R": 4,"s_min": 25.0,"s_mean": 25.0,"r_max": 6.0,"antibiotic_raw": "chloramphenicol"}
+    },
+    "ciprofloxacin": {
+      "CLSI": {"n_S": 2,"n_I": 0,"n_R": 5,"s_min": 22.0,"s_mean": 26.0,"r_max": 9.6,"antibiotic_raw": "ciprofloxacin"},
+      "EUCAST": {"n_S": 5,"n_I": 0,"n_R": 87,"s_min": 26.0,"s_mean": 26.4,"r_max": 6.0,"antibiotic_raw": "ciprofloxacin"}
+    },
+    "colistin": {
+      "CLSI": {"n_S": 6,"n_I": 0,"n_R": 0,"s_min": 13.0,"s_mean": 14.0,"r_max": 10.0,"antibiotic_raw": "colistin"}
+    },
+    "ertapenem": {
+      "CLSI": {"n_S": 2,"n_I": 1,"n_R": 3,"s_min": 22.8,"s_mean": 26.0,"r_max": 6.0,"i_mean": 20.0,"antibiotic_raw": "ertapenem"}
+    },
+    "gentamicin": {
+      "CLSI": {"n_S": 10,"n_I": 0,"n_R": 1,"s_min": 15.9,"s_mean": 19.0,"r_max": 6.0,"antibiotic_raw": "gentamicin"}
+    },
+    "imipenem": {
+      "CLSI": {"n_S": 6,"n_I": 1,"n_R": 2,"s_min": 20.0,"s_mean": 23.8,"r_max": 13.0,"i_mean": 21.0,"antibiotic_raw": "imipenem"}
+    },
+    "levofloxacin": {
+      "CLSI": {"n_S": 2,"n_I": 0,"n_R": 5,"s_min": 21.8,"s_mean": 25.0,"r_max": 7.8,"antibiotic_raw": "levofloxacin"}
+    },
+    "meropenem": {
+      "CLSI": {"n_S": 6,"n_I": 1,"n_R": 3,"s_min": 26.0,"s_mean": 29.2,"r_max": 14.0,"i_mean": 21.0,"antibiotic_raw": "meropenem"}
+    },
+    "nitrofurantoin": {
+      "EUCAST": {"n_S": 25,"n_I": 0,"n_R": 50,"s_min": 18.0,"s_mean": 19.8,"r_max": 6.0,"antibiotic_raw": "nitrofurantoin"}
+    },
+    "piperacillin": {
+      "CLSI": {"n_S": 1,"n_I": 0,"n_R": 5,"s_min": 27.0,"s_mean": 27.0,"r_max": 8.4,"antibiotic_raw": "piperacillin"}
+    },
+    "piperacillin-tazobactam": {
+      "EUCAST": {"n_S": 68,"n_I": 0,"n_R": 7,"s_min": 21.0,"s_mean": 23.0,"r_max": 19.0,"antibiotic_raw": "piperacillin-tazobactam"}
+    },
+    "tetracycline": {
+      "CLSI": {"n_S": 4,"n_I": 0,"n_R": 3,"s_min": 16.0,"s_mean": 19.2,"r_max": 10.8,"antibiotic_raw": "tetracycline"}
+    },
+    "tobramycin": {
+      "CLSI": {"n_S": 5,"n_I": 0,"n_R": 5,"s_min": 18.8,"s_mean": 20.4,"r_max": 10.0,"antibiotic_raw": "tobramycin"}
+    },
+    "trimethoprim-sulfamethoxazole": {
+      "CLSI": {"n_S": 1,"n_I": 1,"n_R": 5,"s_min": 27.0,"s_mean": 27.0,"r_max": 6.0,"i_mean": 15.0,"antibiotic_raw": "trimethoprim-sulfamethoxazole"},
+      "EUCAST": {"n_S": 26,"n_I": 8,"n_R": 62,"s_min": 16.0,"s_mean": 18.6,"r_max": 6.0,"i_mean": 12.4,"antibiotic_raw": "trimethoprim-sulfamethoxazole"}
+    }
+  },
+  "Neisseria gonorrhoeae": {
+    "cefepime": {
+      "missing": {"n_S": 21,"n_I": 0,"n_R": 0,"s_min": 34.0,"s_mean": 43.0,"r_max": 31.0,"antibiotic_raw": "cefepime"}
+    },
+    "cefixime": {
+      "missing": {"n_S": 21,"n_I": 0,"n_R": 0,"s_min": 36.0,"s_mean": 43.8,"r_max": 33.0,"antibiotic_raw": "cefixime"}
+    },
+    "cefotaxime": {
+      "missing": {"n_S": 21,"n_I": 0,"n_R": 0,"s_min": 45.0,"s_mean": 50.6,"r_max": 42.0,"antibiotic_raw": "cefotaxime"}
+    },
+    "cefoxitin": {
+      "missing": {"n_S": 21,"n_I": 0,"n_R": 0,"s_min": 35.0,"s_mean": 39.4,"r_max": 32.0,"antibiotic_raw": "cefoxitin"}
+    },
+    "ceftriaxone": {
+      "missing": {"n_S": 21,"n_I": 0,"n_R": 0,"s_min": 42.0,"s_mean": 49.7,"r_max": 39.0,"antibiotic_raw": "ceftriaxone"}
+    },
+    "ciprofloxacin": {
+      "missing": {"n_S": 13,"n_I": 0,"n_R": 8,"s_min": 30.8,"s_mean": 48.2,"r_max": 22.3,"antibiotic_raw": "ciprofloxacin"}
+    },
+    "penicillin": {
+      "missing": {"n_S": 5,"n_I": 13,"n_R": 3,"s_min": 31.6,"s_mean": 41.4,"r_max": 26.8,"i_mean": 34.1,"antibiotic_raw": "penicillin"}
+    },
+    "tetracycline": {
+      "missing": {"n_S": 14,"n_I": 1,"n_R": 6,"s_min": 34.8,"s_mean": 40.4,"r_max": 28.5,"i_mean": 31.0,"antibiotic_raw": "tetracycline"}
+    }
+  },
+  "Pseudomonas aeruginosa": {
+    "amikacin": {
+      "CLSI": {"n_S": 63,"n_I": 3,"n_R": 10,"s_min": 19.0,"s_mean": 23.3,"r_max": 14.0,"i_mean": 15.0,"antibiotic_raw": "amikacin"}
+    },
+    "aztreonam": {
+      "CLSI": {"n_S": 6,"n_I": 0,"n_R": 19,"s_min": 23.0,"s_mean": 25.3,"r_max": 14.0,"antibiotic_raw": "aztreonam"}
+    },
+    "carbenicillin": {
+      "CLSI": {"n_S": 5,"n_I": 1,"n_R": 3,"s_min": 21.6,"s_mean": 24.6,"r_max": 17.4,"i_mean": 20.0,"antibiotic_raw": "carbenicillin"}
+    },
+    "cefepime": {
+      "CLSI": {"n_S": 41,"n_I": 6,"n_R": 23,"s_min": 20.0,"s_mean": 25.0,"r_max": 14.0,"i_mean": 16.0,"antibiotic_raw": "cefepime"}
+    },
+    "ceftazidime": {
+      "CLSI": {"n_S": 45,"n_I": 2,"n_R": 20,"s_min": 20.0,"s_mean": 24.5,"r_max": 13.0,"i_mean": 16.0,"antibiotic_raw": "ceftazidime"}
+    },
+    "ciprofloxacin": {
+      "CLSI": {"n_S": 41,"n_I": 5,"n_R": 24,"s_min": 24.0,"s_mean": 31.7,"r_max": 18.0,"i_mean": 19.8,"antibiotic_raw": "ciprofloxacin"}
+    },
+    "colistin": {
+      "CLSI": {"n_S": 22,"n_I": 0,"n_R": 2,"s_min": 19.6,"s_mean": 16.4,"r_max": 18.6,"antibiotic_raw": "colistin"}
+    },
+    "gentamicin": {
+      "CLSI": {"n_S": 55,"n_I": 1,"n_R": 20,"s_min": 18.0,"s_mean": 21.1,"r_max": 12.0,"i_mean": 13.0,"antibiotic_raw": "gentamicin"}
+    },
+    "imipenem": {
+      "CLSI": {"n_S": 29,"n_I": 2,"n_R": 18,"s_min": 24.0,"s_mean": 26.1,"r_max": 13.0,"i_mean": 15.0,"antibiotic_raw": "imipenem"}
+    },
+    "levofloxacin": {
+      "CLSI": {"n_S": 39,"n_I": 3,"n_R": 30,"s_min": 18.8,"s_mean": 24.6,"r_max": 13.1,"i_mean": 15.7,"antibiotic_raw": "levofloxacin"}
+    },
+    "meropenem": {
+      "CLSI": {"n_S": 39,"n_I": 3,"n_R": 34,"s_min": 20.0,"s_mean": 26.8,"r_max": 13.7,"i_mean": 16.3,"antibiotic_raw": "meropenem"}
+    },
+    "piperacillin": {
+      "CLSI": {"n_S": 9,"n_I": 2,"n_R": 18,"s_min": 21.6,"s_mean": 25.0,"r_max": 12.2,"i_mean": 18.5,"antibiotic_raw": "piperacillin"}
+    },
+    "piperacillin-tazobactam": {
+      "CLSI": {"n_S": 32,"n_I": 7,"n_R": 2,"s_min": 21.1,"s_mean": 26.1,"r_max": 19.4,"i_mean": 17.4,"antibiotic_raw": "piperacillin-tazobactam"}
+    },
+    "tobramycin": {
+      "CLSI": {"n_S": 27,"n_I": 0,"n_R": 9,"s_min": 17.0,"s_mean": 23.1,"r_max": 7.2,"antibiotic_raw": "tobramycin"}
+    }
+  },
+  "Salmonella enterica": {
+    "azithromycin": {
+      "EUCAST": {"n_S": 15,"n_I": 0,"n_R": 5,"s_min": 13.0,"s_mean": 14.3,"r_max": 11.6,"antibiotic_raw": "azithromycin"}
+    }
+  },
+  "Staphylococcus aureus": {
+    "amikacin": {
+      "CLSI": {"n_S": 5,"n_I": 0,"n_R": 0,"s_min": 21.4,"s_mean": 22.2,"r_max": 18.4,"antibiotic_raw": "amikacin"}
+    },
+    "azithromycin": {
+      "CLSI": {"n_S": 4,"n_I": 1,"n_R": 0,"s_min": 26.0,"s_mean": 27.0,"i_mean": 14.0,"r_max": 23.0,"antibiotic_raw": "azithromycin"}
+    },
+    "cefazolin": {
+      "CLSI": {"n_S": 4,"n_I": 0,"n_R": 1,"s_min": 23.0,"s_mean": 27.0,"r_max": 7.0,"antibiotic_raw": "cefazolin"}
+    },
+    "ceftriaxone": {
+      "CLSI": {"n_S": 4,"n_I": 0,"n_R": 1,"s_min": 25.0,"s_mean": 27.5,"r_max": 8.0,"antibiotic_raw": "ceftriaxone"}
+    },
+    "ciprofloxacin": {
+      "EUCAST": {"n_S": 11,"n_I": 0,"n_R": 2,"s_min": 26.0,"s_mean": 28.5,"r_max": 18.0,"antibiotic_raw": "ciprofloxacin"}
+    },
+    "clindamycin": {
+      "EUCAST": {"n_S": 6,"n_I": 0,"n_R": 1,"s_min": 25.0,"s_mean": 28.5,"r_max": 15.0,"antibiotic_raw": "clindamycin"}
+    },
+    "erythromycin": {
+      "CLSI": {"n_S": 4,"n_I": 0,"n_R": 1,"s_min": 26.0,"s_mean": 26.5,"r_max": 12.0,"antibiotic_raw": "erythromycin"},
+      "EUCAST": {"n_S": 11,"n_I": 0,"n_R": 3,"s_min": 30.0,"s_mean": 32.4,"r_max": 12.4,"antibiotic_raw": "erythromycin"}
+    },
+    "gentamicin": {
+      "CLSI": {"n_S": 5,"n_I": 0,"n_R": 0,"s_min": 18.4,"s_mean": 20.8,"r_max": 15.4,"antibiotic_raw": "gentamicin"},
+      "EUCAST": {"n_S": 2,"n_I": 0,"n_R": 12,"s_min": 17.3,"s_mean": 18.5,"r_max": 14.0,"antibiotic_raw": "gentamicin"}
+    },
+    "meropenem": {
+      "CLSI": {"n_S": 5,"n_I": 0,"n_R": 0,"s_min": 32.0,"s_mean": 33.6,"r_max": 29.0,"antibiotic_raw": "meropenem"}
+    },
+    "oxacillin": {
+      "CLSI": {"n_S": 2,"n_I": 0,"n_R": 3,"s_min": 19.0,"s_mean": 19.0,"r_max": 15.0,"antibiotic_raw": "oxacillin"},
+      "EUCAST": {"n_S": 39,"n_I": 0,"n_R": 0,"s_min": 25.0,"s_mean": 27.8,"r_max": 22.0,"antibiotic_raw": "oxacillin"}
+    },
+    "penicillin": {
+      "EUCAST": {"n_S": 1,"n_I": 0,"n_R": 13,"s_min": 32.0,"s_mean": 32.0,"r_max": 16.0,"antibiotic_raw": "penicillin"}
+    },
+    "rifampin": {
+      "EUCAST": {"n_S": 6,"n_I": 0,"n_R": 0,"s_min": 32.0,"s_mean": 36.0,"r_max": 29.0,"antibiotic_raw": "rifampin"}
+    },
+    "tetracycline": {
+      "EUCAST": {"n_S": 7,"n_I": 0,"n_R": 3,"s_min": 28.8,"s_mean": 32.6,"r_max": 16.0,"antibiotic_raw": "tetracycline"}
+    },
+    "tobramycin": {
+      "CLSI": {"n_S": 5,"n_I": 0,"n_R": 0,"s_min": 21.6,"s_mean": 23.2,"r_max": 18.6,"antibiotic_raw": "tobramycin"}
+    },
+    "vancomycin": {
+      "EUCAST": {"n_S": 8,"n_I": 0,"n_R": 0,"s_min": 17.0,"s_mean": 18.8,"r_max": 14.0,"antibiotic_raw": "vancomycin"}
+    }
+  }
+}
