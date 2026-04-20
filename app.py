@@ -1,11 +1,17 @@
 import copy
+import traceback
 import unicodedata
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 from PIL import Image
 
-from antibiogram_processor import process_antibiogram, draw_results, DetectedDisk
+from core.config import AppConfig
+from core.drawing import draw_results
+from core.models import DetectedDisk
+from services.analysis import run_analysis
+from services.export import to_csv_bytes, to_pdf_bytes
 from breakpoints import get_breakpoint_info, get_antibiotic_options, SPECIES_LIST
 
 st.set_page_config(page_title="Antibiogram Reader", layout="wide", page_icon="🧫")
@@ -133,9 +139,10 @@ if raw_img is not None:
         st.session_state.img_key = detection_key
         with st.spinner("Détection des disques et mesure des zones…"):
             try:
-                disks, px_per_mm = process_antibiogram(img_arr, use_ml=use_ml_filter)
+                cfg = AppConfig.load()
+                result = run_analysis(img_arr, cfg=cfg, use_ml=use_ml_filter)
+                disks, px_per_mm = result.disks, result.px_per_mm
             except Exception as exc:
-                import traceback
                 st.error(f"Erreur de traitement : {exc}")
                 with st.expander("Détails techniques"):
                     st.code(traceback.format_exc())
@@ -306,7 +313,6 @@ if raw_img is not None:
 
                 ec, pc = st.columns(2)
                 with ec:
-                    from export import to_csv_bytes
                     st.download_button(
                         "⬇️ Télécharger CSV",
                         data=to_csv_bytes(rows),
@@ -315,7 +321,6 @@ if raw_img is not None:
                     )
                 with pc:
                     try:
-                        from export import to_pdf_bytes
                         st.download_button(
                             "⬇️ Télécharger PDF",
                             data=to_pdf_bytes(rows, species=species, guideline=guideline),
