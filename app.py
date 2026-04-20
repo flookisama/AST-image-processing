@@ -29,6 +29,8 @@ use_ml_filter = st.sidebar.checkbox(
     value=True,
     help="Désactivez si aucun disque n'est détecté — le filtre ML peut être trop strict sur certaines images.",
 )
+if not use_ml_filter:
+    st.sidebar.caption("⚠️ ML désactivé — mode Hough seul")
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Autres pages**")
@@ -133,7 +135,10 @@ if raw_img is not None:
             try:
                 disks, px_per_mm = process_antibiogram(img_arr, use_ml=use_ml_filter)
             except Exception as exc:
+                import traceback
                 st.error(f"Erreur de traitement : {exc}")
+                with st.expander("Détails techniques"):
+                    st.code(traceback.format_exc())
                 disks, px_per_mm = [], 0.0
         st.session_state.disks = disks
         st.session_state.px_per_mm = px_per_mm

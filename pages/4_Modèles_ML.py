@@ -135,28 +135,30 @@ with tab_detect:
 
             with col_orig:
                 from antibiogram_processor import find_disks, draw_results, process_antibiogram
-                # Hough only
-                with st.spinner("Détection Hough…"):
-                    disks_hough, scale = process_antibiogram.__wrapped__(arr) if hasattr(process_antibiogram, '__wrapped__') else process_antibiogram(arr)
-                annotated_hough = draw_results(arr, disks_hough, scale)
-                st.image(annotated_hough, caption=f"Hough seul : {len(disks_hough)} disque(s)", use_container_width=True)
+                with st.spinner("Détection Hough seul…"):
+                    try:
+                        disks_hough, scale = process_antibiogram(arr, use_ml=False)
+                        annotated_hough = draw_results(arr, disks_hough, scale)
+                        st.image(annotated_hough, caption=f"Hough seul : {len(disks_hough)} disque(s)", use_container_width=True)
+                    except Exception as exc:
+                        st.error(f"Erreur Hough : {exc}")
+                        disks_hough, scale = [], 0.0
 
             with col_ml:
                 from ml_detector import DiskClassifier
-                from antibiogram_processor import find_disks as _find, _to_gray_uint8
-                with st.spinner("Détection ML…"):
-                    clf = DiskClassifier.load()
-                    candidates = _find(arr, use_ml=False)
-                    filtered   = clf.filter(arr, candidates)
-                n_removed = len(candidates) - len(filtered)
-                st.info(f"ML a supprimé **{n_removed}** faux positif(s) parmi {len(candidates)} candidats.")
-
-                # Re-run full pipeline with ML-filtered result (show side effect)
-                with st.spinner("Pipeline complet avec ML…"):
-                    from antibiogram_processor import process_antibiogram
-                    disks_ml, scale_ml = process_antibiogram(arr)
-                annotated_ml = draw_results(arr, disks_ml, scale_ml)
-                st.image(annotated_ml, caption=f"Hough + ML : {len(disks_ml)} disque(s)", use_container_width=True)
+                from antibiogram_processor import find_disks as _find
+                with st.spinner("Pipeline complet Hough + ML…"):
+                    try:
+                        from antibiogram_processor import process_antibiogram
+                        disks_ml, scale_ml = process_antibiogram(arr, use_ml=True)
+                        candidates_raw = _find(arr, use_ml=False)
+                        n_removed = len(candidates_raw) - len(disks_ml)
+                        if n_removed > 0:
+                            st.info(f"ML a supprimé **{n_removed}** faux positif(s) parmi {len(candidates_raw)} candidats.")
+                        annotated_ml = draw_results(arr, disks_ml, scale_ml)
+                        st.image(annotated_ml, caption=f"Hough + ML : {len(disks_ml)} disque(s)", use_container_width=True)
+                    except Exception as exc:
+                        st.error(f"Erreur ML : {exc}")
 
 # ══════════════════════════════════════════════════════════════════════════════
 with tab_ocr:

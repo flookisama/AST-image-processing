@@ -5,11 +5,14 @@ Uses OpenCV only (no dependency on the C++ astimplib).
 from __future__ import annotations
 
 import json
+import logging
 import cv2
 import numpy as np
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Tuple, Optional
+
+log = logging.getLogger(__name__)
 
 DISK_DIAMETER_MM = 6.0
 _CONFIG_PATH = Path(__file__).parent / "data" / "calibration.json"
@@ -40,8 +43,8 @@ def load_params() -> dict:
                 loaded = json.load(f)
             _params = {**_DEFAULT_PARAMS, **loaded}
             return _params
-        except Exception:
-            pass
+        except Exception as exc:
+            log.warning("Could not load calibration config: %s — using defaults", exc)
     _params = dict(_DEFAULT_PARAMS)
     return _params
 
@@ -209,9 +212,11 @@ def find_disks(img: np.ndarray, use_ml: bool = True) -> List[Tuple[Tuple[float, 
             from ml_detector import load_classifier
             clf = load_classifier()
             if clf is not None:
-                out = clf.filter(img, out)
-        except Exception:
-            pass
+                filtered = clf.filter(img, out)
+                log.debug("ML filter: %d → %d candidates", len(out), len(filtered))
+                out = filtered
+        except Exception as exc:
+            log.warning("ML filter failed (%s) — keeping Hough results", exc)
 
     return out
 
@@ -235,6 +240,8 @@ def _measure_zone(
     Measure inhibition zone diameter using gradient-based edge detection on radial profile.
     Returns (diameter_mm, confidence 0-1).
     """
+    if px_per_mm <= 0:
+        return DISK_DIAMETER_MM, 0.0
     p = load_params()
     h, w = gray.shape
     max_r = min(int(28 * px_per_mm), int(0.45 * min(h, w)))
@@ -306,6 +313,9 @@ def process_antibiogram(
 
     circles.sort(key=lambda c: (round(c[0][1] / 30), c[0][0]))
     median_r = float(np.median([r for _, r in circles]))
+    if median_r <= 0:
+        log.warning("median disk radius is 0 — cannot compute scale")
+        return [], 0.0
     scale = _px_per_mm(median_r)
 
     results: List[DetectedDisk] = []

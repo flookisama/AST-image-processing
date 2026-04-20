@@ -27,6 +27,7 @@ from antibiogram_processor import (
     save_params,
     reset_params,
     process_antibiogram,
+    process_with_params,
     _DEFAULT_PARAMS,
 )
 
@@ -259,20 +260,15 @@ with tab_test:
 
         img_arr = np.array(Image.open(test_img).convert("RGB"))
 
-        # Apply the parameters from tab_params (they're already in new_params)
-        # We temporarily save them to get fresh detection
-        _prev = load_params()
-        save_params(new_params)
-
         with st.spinner("Détection en cours…"):
             try:
-                disks, px_per_mm = process_antibiogram(img_arr)
+                disks, px_per_mm = process_with_params(img_arr, new_params)
             except Exception as exc:
+                import traceback
                 st.error(f"Erreur : {exc}")
+                with st.expander("Détails de l'erreur"):
+                    st.code(traceback.format_exc())
                 disks, px_per_mm = [], 0.0
-
-        # Restore previous params if not saved
-        # (user has to explicitly save in tab_params)
 
         c1, c2 = st.columns(2)
         with c1:

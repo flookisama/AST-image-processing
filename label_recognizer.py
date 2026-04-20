@@ -189,10 +189,15 @@ def recognize_label(
     try:
         import pytesseract
         cfg = "--psm 8 --oem 3 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        text = pytesseract.image_to_string(binary, config=cfg).strip()
-        if text:
-            code = _normalise_code(text)
-            return code, 0.5 if code else 0.0
+        data = pytesseract.image_to_data(
+            binary, config=cfg, output_type=pytesseract.Output.DICT, lang="eng"
+        )
+        texts = [t for t, c in zip(data["text"], data["conf"]) if t.strip() and int(c) > 0]
+        confs = [int(c) / 100.0 for t, c in zip(data["text"], data["conf"]) if t.strip() and int(c) > 0]
+        if texts:
+            best_idx = int(np.argmax(confs))
+            code = _normalise_code(texts[best_idx])
+            return code, float(confs[best_idx]) if code else 0.0
     except Exception:
         pass
 

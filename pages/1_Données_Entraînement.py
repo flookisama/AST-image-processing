@@ -74,18 +74,23 @@ with tab1:
 
     if uploaded_words:
         try:
+            import tempfile
             from word_importer import parse_word_file, AntibiogramRecord
             records = []
             errors = []
             for wf in uploaded_words:
-                tmp_path = Path("/tmp") / wf.name
-                tmp_path.write_bytes(wf.read())
+                suffix = Path(wf.name).suffix
+                with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                    tmp.write(wf.read())
+                    tmp_path = Path(tmp.name)
                 try:
                     recs = parse_word_file(tmp_path)
                     for r in recs:
                         records.append(r.to_dict())
                 except Exception as exc:
                     errors.append(f"{wf.name} : {exc}")
+                finally:
+                    tmp_path.unlink(missing_ok=True)
 
             st.session_state.word_records = records
 

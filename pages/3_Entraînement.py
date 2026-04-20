@@ -100,11 +100,15 @@ with step1:
             if not HAS_DOCX:
                 st.error("python-docx requis — pip install python-docx")
             else:
+                import tempfile
                 records, errors = [], []
                 for wf in words:
-                    st.session_state.train_words[wf.name] = wf.read()
-                    tmp = Path("/tmp") / wf.name
-                    tmp.write_bytes(st.session_state.train_words[wf.name])
+                    data = wf.read()
+                    st.session_state.train_words[wf.name] = data
+                    suffix = Path(wf.name).suffix
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_f:
+                        tmp_f.write(data)
+                        tmp = Path(tmp_f.name)
                     try:
                         recs = parse_word_file(tmp)
                         for r in recs:
@@ -113,6 +117,8 @@ with step1:
                             records.append(r_dict)
                     except Exception as e:
                         errors.append(f"{wf.name}: {e}")
+                    finally:
+                        tmp.unlink(missing_ok=True)
 
                 st.session_state.word_records = records
                 for e in errors: st.warning(e)

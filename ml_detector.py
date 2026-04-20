@@ -23,10 +23,15 @@ Usage
 """
 from __future__ import annotations
 
+import json
+import logging
 import pickle
 import warnings
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Tuple, Dict
+
+log = logging.getLogger(__name__)
 
 import cv2
 import numpy as np
@@ -191,7 +196,7 @@ class DiskClassifier:
         self,
         img: np.ndarray,
         candidates: List[Tuple[Tuple[float, float], float]],
-        threshold: float = 0.45,
+        threshold: float = 0.35,
     ) -> List[Tuple[Tuple[float, float], float]]:
         """Filter Hough candidates — keep only those the SVM calls a disk."""
         if not self._trained or not candidates:
@@ -210,12 +215,37 @@ class DiskClassifier:
         return kept
 
     def save(self, path: Path = MODEL_PATH) -> None:
+        import sklearn
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "wb") as f:
             pickle.dump(self._clf, f)
+        meta = {
+            "sklearn_version": sklearn.__version__,
+            "saved_at": datetime.now().isoformat(),
+            "model_type": "HOG+SVM",
+        }
+        meta_path = path.with_suffix(".json")
+        with open(meta_path, "w") as f:
+            json.dump(meta, f, indent=2)
+        log.info("Model saved to %s (sklearn %s)", path, sklearn.__version__)
 
     @classmethod
     def load(cls, path: Path = MODEL_PATH) -> "DiskClassifier":
+        import sklearn
+        meta_path = path.with_suffix(".json")
+        if meta_path.is_file():
+            try:
+                with open(meta_path) as f:
+                    meta = json.load(f)
+                saved_ver = meta.get("sklearn_version", "?")
+                cur_ver = sklearn.__version__
+                if saved_ver.split(".")[:2] != cur_ver.split(".")[:2]:
+                    log.warning(
+                        "sklearn version mismatch: model saved with %s, running %s",
+                        saved_ver, cur_ver,
+                    )
+            except Exception:
+                pass
         obj = cls()
         with open(path, "rb") as f:
             obj._clf = pickle.load(f)
